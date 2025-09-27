@@ -668,7 +668,8 @@ function App() {
                               <TableHead className="font-semibold text-gray-900 bg-gray-50 px-4 py-3 text-right">Payment</TableHead>
                               <TableHead className="font-semibold text-gray-900 bg-gray-50 px-4 py-3 text-right">Principal</TableHead>
                               <TableHead className="font-semibold text-gray-900 bg-gray-50 px-4 py-3 text-right">Interest</TableHead>
-                              <TableHead className="font-semibold text-gray-900 bg-gray-50 px-4 py-3 text-right">Insurance</TableHead>
+                              <TableHead className="font-semibold text-gray-900 bg-gray-50 px-4 py-3 text-right">Insurance 1</TableHead>
+                              <TableHead className="font-semibold text-gray-900 bg-gray-50 px-4 py-3 text-right">Insurance 2</TableHead>
                               <TableHead className="font-semibold text-gray-900 bg-gray-50 px-4 py-3 text-right">Balance</TableHead>
                             </TableRow>
                           </TableHeader>
