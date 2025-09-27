@@ -139,7 +139,13 @@ function App() {
         grace_period_months: parseInt(loanInput.grace_period_months),
         upfront_commission_bps: parseFloat(loanInput.upfront_commission_bps),
         insurance_fee_bps: parseFloat(loanInput.insurance_fee_bps),
-        floating_rate_margin: parseFloat(loanInput.floating_rate_margin)
+        spread_bps: parseFloat(loanInput.spread_bps),
+        reference_rate_schedule: loanInput.rate_type === 'floating' 
+          ? referenceRateSchedule.filter(r => r.reference_rate !== '').map(r => ({
+              payment_number: parseInt(r.payment_number),
+              reference_rate: parseFloat(r.reference_rate)
+            }))
+          : []
       };
 
       const response = await axios.post(`${API}/calculate-loan`, payload);
