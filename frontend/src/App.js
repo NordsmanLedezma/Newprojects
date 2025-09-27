@@ -479,15 +479,15 @@ function App() {
                     <CardContent className="p-0">
                       <div className="max-h-96 overflow-auto">
                         <Table>
-                          <TableHeader className="sticky top-0 bg-gray-50">
-                            <TableRow>
-                              <TableHead className="font-semibold">Payment #</TableHead>
-                              <TableHead className="font-semibold">Date</TableHead>
-                              <TableHead className="font-semibold text-right">Payment</TableHead>
-                              <TableHead className="font-semibold text-right">Principal</TableHead>
-                              <TableHead className="font-semibold text-right">Interest</TableHead>
-                              <TableHead className="font-semibold text-right">Insurance</TableHead>
-                              <TableHead className="font-semibold text-right">Balance</TableHead>
+                          <TableHeader className="sticky top-0 bg-gray-50 z-10">
+                            <TableRow className="border-b border-gray-200">
+                              <TableHead className="font-semibold text-gray-900 bg-gray-50 px-4 py-3">Payment #</TableHead>
+                              <TableHead className="font-semibold text-gray-900 bg-gray-50 px-4 py-3">Date</TableHead>
+                              <TableHead className="font-semibold text-gray-900 bg-gray-50 px-4 py-3 text-right">Payment</TableHead>
+                              <TableHead className="font-semibold text-gray-900 bg-gray-50 px-4 py-3 text-right">Principal</TableHead>
+                              <TableHead className="font-semibold text-gray-900 bg-gray-50 px-4 py-3 text-right">Interest</TableHead>
+                              <TableHead className="font-semibold text-gray-900 bg-gray-50 px-4 py-3 text-right">Insurance</TableHead>
+                              <TableHead className="font-semibold text-gray-900 bg-gray-50 px-4 py-3 text-right">Balance</TableHead>
                             </TableRow>
                           </TableHeader>
                           <TableBody>
