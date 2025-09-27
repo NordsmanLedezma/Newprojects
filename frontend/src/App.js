@@ -875,6 +875,22 @@ function App() {
                         payment summaries, and export professional Excel reports.
                       </p>
                     </div>
+                    
+                    {/* Download Instructions */}
+                    <div className="max-w-lg mx-auto bg-blue-50 border border-blue-200 rounded-lg p-4">
+                      <div className="flex items-start space-x-3">
+                        <Download className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                        <div className="text-sm">
+                          <div className="font-semibold text-blue-900 mb-1">Excel Export Instructions</div>
+                          <div className="text-blue-800 space-y-1">
+                            <div>• Calculate your loan to enable Excel export</div>
+                            <div>• Click "Download Excel Report" to save to Downloads folder</div>
+                            <div>• Report includes complete payment schedule & summary</div>
+                            <div>• File format: .xlsx (compatible with Excel, Google Sheets)</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-lg mx-auto text-sm">
                       <div className="text-center p-3 bg-blue-50 rounded-lg">
                         <div className="font-semibold text-blue-900">Multi-Currency</div>
