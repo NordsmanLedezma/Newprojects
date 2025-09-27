@@ -197,11 +197,24 @@ def generate_amortization_schedule(loan_input: LoanInput) -> tuple[LoanSummary, 
         cumulative_insurance += monthly_insurance_fee
         cumulative_insurance_2 += monthly_insurance_fee_2
         
-        # Calculate payment date (assuming monthly payments)
-        payment_date = datetime.now(timezone.utc).replace(day=1)
-        payment_date = payment_date.replace(month=((payment_date.month + payment_num - 1) % 12) + 1)
-        if payment_num > 12:
-            payment_date = payment_date.replace(year=payment_date.year + (payment_num - 1) // 12)
+        # Calculate payment date based on beginning date
+        beginning_date = datetime.strptime(loan_input.beginning_date, "%Y-%m-%d")
+        # Add months to beginning date
+        year = beginning_date.year
+        month = beginning_date.month + payment_num
+        while month > 12:
+            year += 1
+            month -= 12
+        
+        # Handle end of month dates properly
+        try:
+            payment_date = beginning_date.replace(year=year, month=month)
+        except ValueError:
+            # Handle cases like Jan 31 -> Feb 31 (doesn't exist)
+            # Set to last day of target month
+            import calendar
+            last_day = calendar.monthrange(year, month)[1]
+            payment_date = beginning_date.replace(year=year, month=month, day=min(beginning_date.day, last_day))
         
         payment = AmortizationPayment(
             payment_number=payment_num,
