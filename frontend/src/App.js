@@ -235,10 +235,10 @@ function App() {
                   <div>
                     <Label htmlFor="rate_type" className="font-medium text-gray-700">Rate Type</Label>
                     <Select value={loanInput.rate_type} onValueChange={(value) => handleInputChange('rate_type', value)}>
-                      <SelectTrigger data-testid="rate-type-select" className="mt-1">
+                      <SelectTrigger data-testid="rate-type-select" className="mt-1 relative z-10">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="z-50">
                         <SelectItem value="fixed">Fixed Rate</SelectItem>
                         <SelectItem value="floating">Floating Rate</SelectItem>
                       </SelectContent>
