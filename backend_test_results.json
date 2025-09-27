@@ -1,0 +1,92 @@
+{
+  "timestamp": "2025-09-27T11:25:21.448154",
+  "total_tests": 14,
+  "passed_tests": 14,
+  "success_rate": 100.0,
+  "test_results": [
+    {
+      "test_name": "API Root Endpoint",
+      "status": "\u2705 PASSED",
+      "success": true,
+      "details": "Status: 200, Response: {'message': 'Loan Calculator API'}"
+    },
+    {
+      "test_name": "Currencies Endpoint",
+      "status": "\u2705 PASSED",
+      "success": true,
+      "details": "Currencies: ['EUR', 'USD', 'CHF', 'JPY'], Has rates: True"
+    },
+    {
+      "test_name": "Basic Loan Calculation",
+      "status": "\u2705 PASSED",
+      "success": true,
+      "details": "Fields OK: True, Summary OK: True, Schedule entries: 300"
+    },
+    {
+      "test_name": "Advanced Loan Calculation",
+      "status": "\u2705 PASSED",
+      "success": true,
+      "details": "Grace period payments: 12/12, Commission: True, Insurance: True"
+    },
+    {
+      "test_name": "Currency Support - EUR",
+      "status": "\u2705 PASSED",
+      "success": true,
+      "details": "Currency: EUR, Correct: True"
+    },
+    {
+      "test_name": "Currency Support - USD",
+      "status": "\u2705 PASSED",
+      "success": true,
+      "details": "Currency: USD, Correct: True"
+    },
+    {
+      "test_name": "Currency Support - CHF",
+      "status": "\u2705 PASSED",
+      "success": true,
+      "details": "Currency: CHF, Correct: True"
+    },
+    {
+      "test_name": "Currency Support - JPY",
+      "status": "\u2705 PASSED",
+      "success": true,
+      "details": "Currency: JPY, Correct: True"
+    },
+    {
+      "test_name": "Loan History Endpoint",
+      "status": "\u2705 PASSED",
+      "success": true,
+      "details": "Response is list: True, Count: 8"
+    },
+    {
+      "test_name": "Excel Export",
+      "status": "\u2705 PASSED",
+      "success": true,
+      "details": "Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, Size: 24979 bytes"
+    },
+    {
+      "test_name": "Validation - Negative loan amount",
+      "status": "\u2705 PASSED",
+      "success": true,
+      "details": "Expected failure, got status: 422"
+    },
+    {
+      "test_name": "Validation - Invalid interest rate",
+      "status": "\u2705 PASSED",
+      "success": true,
+      "details": "Expected failure, got status: 422"
+    },
+    {
+      "test_name": "Validation - Invalid term years",
+      "status": "\u2705 PASSED",
+      "success": true,
+      "details": "Expected failure, got status: 422"
+    },
+    {
+      "test_name": "Validation - Missing required fields",
+      "status": "\u2705 PASSED",
+      "success": true,
+      "details": "Expected failure, got status: 422"
+    }
+  ]
+}
