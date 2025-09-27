@@ -177,17 +177,17 @@ def generate_amortization_schedule(loan_input: LoanInput) -> tuple[LoanSummary, 
         if payment_num <= grace_period:
             interest_payment = remaining_balance * (current_rate / 100 / 12)
             principal_payment = 0
-            total_payment = interest_payment + monthly_insurance_fee
+            total_payment = interest_payment + total_monthly_insurance_fee
         else:
             # Regular amortization payments
             interest_payment = remaining_balance * (current_rate / 100 / 12)
             principal_payment = monthly_payment - interest_payment
-            total_payment = monthly_payment + monthly_insurance_fee
+            total_payment = monthly_payment + total_monthly_insurance_fee
             
             # Ensure we don't pay more principal than remaining
             if principal_payment > remaining_balance:
                 principal_payment = remaining_balance
-                total_payment = principal_payment + interest_payment + monthly_insurance_fee
+                total_payment = principal_payment + interest_payment + total_monthly_insurance_fee
         
         # Update balances
         remaining_balance -= principal_payment
