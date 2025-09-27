@@ -54,6 +54,7 @@ class LoanInput(BaseModel):
     upfront_commission_bps: float = Field(default=0, ge=0, le=1000, description="Upfront commission in basis points")
     insurance_fee_bps: float = Field(default=0, ge=0, le=1000, description="Primary insurance fee in basis points")
     insurance_fee_2_bps: float = Field(default=0, ge=0, le=1000, description="Secondary insurance fee in basis points")
+    beginning_date: str = Field(..., description="Loan beginning date in YYYY-MM-DD format")
     # Floating rate specific fields
     spread_bps: Optional[float] = Field(default=0, ge=0, le=1000, description="Spread in basis points added to reference rate (for floating rate)")
     reference_rate_schedule: Optional[List[ReferenceRateSchedule]] = Field(default=[], description="Reference rate schedule for floating rate loans")
