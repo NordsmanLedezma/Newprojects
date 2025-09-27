@@ -839,7 +839,8 @@ function App() {
                                   size="sm" 
                                   variant="outline"
                                   onClick={() => handleExportExcel(calc.id)}
-                                  className="text-xs"
+                                  className="text-xs hover:bg-green-50 hover:border-green-300 hover:text-green-700 transition-colors"
+                                  title="Download Excel report to your Downloads folder"
                                 >
                                   <Download className="h-3 w-3 mr-1" />
                                   Excel
