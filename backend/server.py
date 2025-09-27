@@ -279,7 +279,9 @@ def create_excel_report(loan_result: LoanResult) -> str:
         ["Monthly Payment", f"{summary.monthly_payment:,.2f} {loan_input.currency}"],
         ["Total Payments", f"{summary.total_payments:,.2f} {loan_input.currency}"],
         ["Total Interest", f"{summary.total_interest:,.2f} {loan_input.currency}"],
-        ["Total Insurance Fees", f"{summary.total_insurance_fees:,.2f} {loan_input.currency}"],
+        ["Primary Insurance Fees", f"{summary.total_insurance_fees:,.2f} {loan_input.currency}"],
+        ["Secondary Insurance Fees", f"{summary.total_insurance_fees_2:,.2f} {loan_input.currency}"],
+        ["Combined Insurance Fees", f"{summary.combined_insurance_fees:,.2f} {loan_input.currency}"],
         ["Upfront Commission", f"{summary.upfront_commission:,.2f} {loan_input.currency}"],
         ["Total Cost of Loan", f"{summary.total_cost:,.2f} {loan_input.currency}"],
         ["Effective Annual Rate", f"{summary.effective_rate:.2f}%"]
