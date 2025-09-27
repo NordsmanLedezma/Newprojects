@@ -40,16 +40,22 @@ EXCHANGE_RATES = {
 }
 
 # Define Models
+class ReferenceRateSchedule(BaseModel):
+    payment_number: int = Field(..., ge=1, description="Payment number (starting from 1)")
+    reference_rate: float = Field(..., ge=0, le=50, description="Reference rate as percentage for this payment period")
+
 class LoanInput(BaseModel):
     loan_amount: float = Field(..., gt=0, description="Loan amount")
-    interest_rate: float = Field(..., ge=0, le=50, description="Annual interest rate as percentage")
+    interest_rate: float = Field(..., ge=0, le=50, description="Annual interest rate as percentage (for fixed rate) or initial reference rate (for floating rate)")
     term_years: int = Field(..., gt=0, le=30, description="Loan term in years")
     currency: Literal["EUR", "USD", "CHF", "JPY"] = Field(default="EUR")
     rate_type: Literal["fixed", "floating"] = Field(default="fixed")
     grace_period_months: int = Field(default=0, ge=0, le=60, description="Grace period in months")
     upfront_commission_bps: float = Field(default=0, ge=0, le=1000, description="Upfront commission in basis points")
     insurance_fee_bps: float = Field(default=0, ge=0, le=1000, description="Insurance fee in basis points")
-    floating_rate_margin: Optional[float] = Field(default=0, description="Additional margin for floating rates")
+    # Floating rate specific fields
+    spread_bps: Optional[float] = Field(default=0, ge=0, le=1000, description="Spread in basis points added to reference rate (for floating rate)")
+    reference_rate_schedule: Optional[List[ReferenceRateSchedule]] = Field(default=[], description="Reference rate schedule for floating rate loans")
 
 class AmortizationPayment(BaseModel):
     payment_number: int
