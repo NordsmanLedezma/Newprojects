@@ -550,9 +550,21 @@ function App() {
                             </span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-gray-600">Insurance Fees:</span>
+                            <span className="text-gray-600">Primary Insurance:</span>
                             <span className="font-semibold">
                               {formatCurrency(loanResult.loan_summary.total_insurance_fees, loanResult.loan_input.currency)}
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Secondary Insurance:</span>
+                            <span className="font-semibold">
+                              {formatCurrency(loanResult.loan_summary.total_insurance_fees_2, loanResult.loan_input.currency)}
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Combined Insurance:</span>
+                            <span className="font-semibold text-blue-600">
+                              {formatCurrency(loanResult.loan_summary.combined_insurance_fees, loanResult.loan_input.currency)}
                             </span>
                           </div>
                           <div className="flex justify-between">
