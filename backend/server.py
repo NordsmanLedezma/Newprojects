@@ -226,14 +226,18 @@ def generate_amortization_schedule(loan_input: LoanInput) -> tuple[LoanSummary, 
     total_payments = sum(p.payment_amount for p in schedule)
     total_interest = cumulative_interest
     total_insurance_fees = cumulative_insurance
+    total_insurance_fees_2 = cumulative_insurance_2
+    combined_insurance_fees = total_insurance_fees + total_insurance_fees_2
     total_cost = total_payments + upfront_commission
     effective_rate = (total_cost / principal - 1) * 100 / loan_input.term_years
     
     summary = LoanSummary(
-        monthly_payment=monthly_payment + monthly_insurance_fee,
+        monthly_payment=monthly_payment + total_monthly_insurance_fee,
         total_payments=total_payments,
         total_interest=total_interest,
         total_insurance_fees=total_insurance_fees,
+        total_insurance_fees_2=total_insurance_fees_2,
+        combined_insurance_fees=combined_insurance_fees,
         upfront_commission=upfront_commission,
         total_cost=total_cost,
         effective_rate=effective_rate,
