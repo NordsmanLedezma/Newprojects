@@ -156,14 +156,23 @@ def generate_amortization_schedule(loan_input: LoanInput) -> tuple[LoanSummary, 
     cumulative_insurance = 0
     
     for payment_num in range(1, term_months + 1):
+        # Get effective interest rate for this payment
+        current_rate = get_effective_interest_rate(loan_input, payment_num)
+        
+        # For floating rate loans after grace period, recalculate payment if rate changed
+        if loan_input.rate_type == "floating" and payment_num > grace_period and remaining_balance > 0:
+            remaining_payments = term_months - payment_num + 1
+            if remaining_payments > 0:
+                monthly_payment = calculate_monthly_payment(remaining_balance, current_rate, remaining_payments)
+        
         # During grace period, only interest and insurance are paid
         if payment_num <= grace_period:
-            interest_payment = remaining_balance * (annual_rate / 100 / 12)
+            interest_payment = remaining_balance * (current_rate / 100 / 12)
             principal_payment = 0
             total_payment = interest_payment + monthly_insurance_fee
         else:
             # Regular amortization payments
-            interest_payment = remaining_balance * (annual_rate / 100 / 12)
+            interest_payment = remaining_balance * (current_rate / 100 / 12)
             principal_payment = monthly_payment - interest_payment
             total_payment = monthly_payment + monthly_insurance_fee
             
