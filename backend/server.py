@@ -322,9 +322,11 @@ def create_excel_report(loan_result: LoanResult) -> str:
         schedule_sheet.cell(row=row_idx, column=5, value=f"{payment.principal_payment:.2f}")
         schedule_sheet.cell(row=row_idx, column=6, value=f"{payment.interest_payment:.2f}")
         schedule_sheet.cell(row=row_idx, column=7, value=f"{payment.insurance_fee:.2f}")
-        schedule_sheet.cell(row=row_idx, column=8, value=f"{payment.ending_balance:.2f}")
-        schedule_sheet.cell(row=row_idx, column=9, value=f"{payment.cumulative_interest:.2f}")
-        schedule_sheet.cell(row=row_idx, column=10, value=f"{payment.cumulative_principal:.2f}")
+        schedule_sheet.cell(row=row_idx, column=8, value=f"{payment.insurance_fee_2:.2f}")
+        schedule_sheet.cell(row=row_idx, column=9, value=f"{payment.total_insurance_fees:.2f}")
+        schedule_sheet.cell(row=row_idx, column=10, value=f"{payment.ending_balance:.2f}")
+        schedule_sheet.cell(row=row_idx, column=11, value=f"{payment.cumulative_interest:.2f}")
+        schedule_sheet.cell(row=row_idx, column=12, value=f"{payment.cumulative_principal:.2f}")
     
     # Adjust column widths for schedule
     for col in range(1, 11):
