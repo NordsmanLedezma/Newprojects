@@ -28,7 +28,8 @@ function App() {
     upfront_commission_bps: '0',
     insurance_fee_bps: '0',
     insurance_fee_2_bps: '0',
-    spread_bps: '0'
+    spread_bps: '0',
+    beginning_date: new Date().toISOString().split('T')[0] // Default to today's date
   });
 
   const [referenceRateSchedule, setReferenceRateSchedule] = useState([]);
