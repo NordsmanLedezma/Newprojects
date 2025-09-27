@@ -66,6 +66,8 @@ class AmortizationPayment(BaseModel):
     principal_payment: float
     interest_payment: float
     insurance_fee: float
+    insurance_fee_2: float
+    total_insurance_fees: float
     ending_balance: float
     cumulative_interest: float
     cumulative_principal: float
