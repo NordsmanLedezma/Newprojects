@@ -151,14 +151,17 @@ def generate_amortization_schedule(loan_input: LoanInput) -> tuple[LoanSummary, 
         # For floating rate, we'll recalculate payment amount based on remaining balance and current rate
         monthly_payment = calculate_monthly_payment(net_principal, effective_initial_rate, payment_months)
     
-    # Insurance fee per payment
+    # Insurance fees per payment
     monthly_insurance_fee = principal * loan_input.insurance_fee_bps / 10000 / 12
+    monthly_insurance_fee_2 = principal * loan_input.insurance_fee_2_bps / 10000 / 12
+    total_monthly_insurance_fee = monthly_insurance_fee + monthly_insurance_fee_2
     
     schedule = []
     remaining_balance = net_principal
     cumulative_interest = 0
     cumulative_principal = 0
     cumulative_insurance = 0
+    cumulative_insurance_2 = 0
     
     for payment_num in range(1, term_months + 1):
         # Get effective interest rate for this payment
