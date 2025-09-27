@@ -567,12 +567,22 @@ function App() {
                             </span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-gray-600">Interest Rate:</span>
+                            <span className="text-gray-600">
+                              {loanResult.loan_input.rate_type === 'floating' ? 'Initial Reference Rate:' : 'Interest Rate:'}
+                            </span>
                             <span className="font-semibold flex items-center space-x-1">
                               <Percent className="h-3 w-3" />
                               <span>{formatNumber(loanResult.loan_input.interest_rate)}%</span>
                             </span>
                           </div>
+                          {loanResult.loan_input.rate_type === 'floating' && loanResult.loan_input.spread_bps > 0 && (
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Spread:</span>
+                              <span className="font-semibold text-orange-600">
+                                +{formatNumber(loanResult.loan_input.spread_bps / 100)}% ({loanResult.loan_input.spread_bps} bps)
+                              </span>
+                            </div>
+                          )}
                           <div className="flex justify-between">
                             <span className="text-gray-600">Term:</span>
                             <span className="font-semibold">{loanResult.loan_input.term_years} years</span>
