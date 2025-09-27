@@ -27,8 +27,11 @@ function App() {
     grace_period_months: '0',
     upfront_commission_bps: '0',
     insurance_fee_bps: '0',
-    floating_rate_margin: '0'
+    spread_bps: '0'
   });
+
+  const [referenceRateSchedule, setReferenceRateSchedule] = useState([]);
+  const [showReferenceRateSchedule, setShowReferenceRateSchedule] = useState(false);
 
   const [loanResult, setLoanResult] = useState(null);
   const [loading, setLoading] = useState(false);
