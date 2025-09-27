@@ -690,6 +690,9 @@ function App() {
                                 <TableCell className="text-right text-blue-600">
                                   {formatCurrency(payment.insurance_fee, loanResult.loan_input.currency)}
                                 </TableCell>
+                                <TableCell className="text-right text-purple-600">
+                                  {formatCurrency(payment.insurance_fee_2, loanResult.loan_input.currency)}
+                                </TableCell>
                                 <TableCell className="text-right font-medium">
                                   {formatCurrency(payment.ending_balance, loanResult.loan_input.currency)}
                                 </TableCell>
