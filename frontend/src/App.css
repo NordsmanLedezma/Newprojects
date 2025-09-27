@@ -148,3 +148,50 @@ input[type="number"] {
   color: #1e40af;
   border: 1px solid #bfdbfe;
 }
+
+/* Dropdown and select improvements */
+[data-radix-popper-content-wrapper] {
+  z-index: 100 !important;
+}
+
+.select-content {
+  z-index: 100;
+  position: relative;
+}
+
+/* Table improvements */
+.table-container {
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+}
+
+.table-header-improved {
+  background: linear-gradient(to bottom, #f9fafb, #f3f4f6);
+  border-bottom: 2px solid #e5e7eb;
+}
+
+/* Improved toast styling */
+.toast-error {
+  background-color: #fef2f2 !important;
+  border: 1px solid #fecaca !important;
+  color: #dc2626 !important;
+  box-shadow: 0 10px 15px -3px rgba(220, 38, 38, 0.1) !important;
+}
+
+/* Form field focus improvements */
+input:focus-visible,
+select:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+  border-color: #3b82f6;
+}
+
+/* Loading state improvements */
+.loading-spinner {
+  animation: spin 1s linear infinite;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  border-top: 2px solid currentColor;
+  border-right: 2px solid currentColor;
+}
