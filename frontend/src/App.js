@@ -447,19 +447,36 @@ function App() {
                     />
                   </div>
                   
-                  <div>
-                    <Label htmlFor="insurance_fee_bps" className="font-medium text-gray-700">Insurance Fee (bps annually)</Label>
-                    <Input
-                      id="insurance_fee_bps"
-                      data-testid="insurance-fee-input"
-                      type="number"
-                      min="0"
-                      max="1000"
-                      value={loanInput.insurance_fee_bps}
-                      onChange={(e) => handleInputChange('insurance_fee_bps', e.target.value)}
-                      placeholder="e.g., 25 (0.25%)"
-                      className="mt-1"
-                    />
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="insurance_fee_bps" className="font-medium text-gray-700">Primary Insurance Fee (bps annually)</Label>
+                      <Input
+                        id="insurance_fee_bps"
+                        data-testid="insurance-fee-input"
+                        type="number"
+                        min="0"
+                        max="1000"
+                        value={loanInput.insurance_fee_bps}
+                        onChange={(e) => handleInputChange('insurance_fee_bps', e.target.value)}
+                        placeholder="e.g., 25 (0.25%)"
+                        className="mt-1"
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="insurance_fee_2_bps" className="font-medium text-gray-700">Secondary Insurance Fee (bps annually)</Label>
+                      <Input
+                        id="insurance_fee_2_bps"
+                        data-testid="insurance-fee-2-input"
+                        type="number"
+                        min="0"
+                        max="1000"
+                        value={loanInput.insurance_fee_2_bps}
+                        onChange={(e) => handleInputChange('insurance_fee_2_bps', e.target.value)}
+                        placeholder="e.g., 15 (0.15%)"
+                        className="mt-1"
+                      />
+                    </div>
                   </div>
                 </div>
 
