@@ -77,6 +77,8 @@ class LoanSummary(BaseModel):
     total_payments: float
     total_interest: float
     total_insurance_fees: float
+    total_insurance_fees_2: float
+    combined_insurance_fees: float
     upfront_commission: float
     total_cost: float
     effective_rate: float
