@@ -302,7 +302,7 @@ def create_excel_report(loan_result: LoanResult) -> str:
     
     headers = [
         "Payment #", "Payment Date", "Beginning Balance", "Payment Amount",
-        "Principal", "Interest", "Insurance Fee", "Ending Balance",
+        "Principal", "Interest", "Insurance Fee 1", "Insurance Fee 2", "Total Insurance", "Ending Balance",
         "Cumulative Interest", "Cumulative Principal"
     ]
     
