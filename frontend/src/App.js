@@ -105,8 +105,8 @@ function App() {
   };
 
   const handleCalculate = async () => {
-    if (!loanInput.loan_amount || !loanInput.interest_rate || !loanInput.term_years) {
-      toast.error('Please fill in all required fields: Loan Amount, Interest Rate, and Term Years', {
+    if (!loanInput.loan_amount || !loanInput.interest_rate || !loanInput.term_years || !loanInput.beginning_date) {
+      toast.error('Please fill in all required fields: Loan Amount, Interest Rate, Term Years, and Beginning Date', {
         duration: 5000,
         style: {
           background: '#fee2e2',
