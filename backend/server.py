@@ -414,6 +414,34 @@ async def get_loan_history():
         results = []
         for calc in calculations:
             calc['created_at'] = datetime.fromisoformat(calc['created_at'])
+            
+            # Handle legacy data that might not have new fields
+            if 'loan_input' in calc:
+                # Add default values for new fields if they don't exist
+                if 'insurance_fee_2_bps' not in calc['loan_input']:
+                    calc['loan_input']['insurance_fee_2_bps'] = 0
+                if 'beginning_date' not in calc['loan_input']:
+                    calc['loan_input']['beginning_date'] = '2025-01-01'  # Default date
+                if 'spread_bps' not in calc['loan_input']:
+                    calc['loan_input']['spread_bps'] = 0
+                if 'reference_rate_schedule' not in calc['loan_input']:
+                    calc['loan_input']['reference_rate_schedule'] = []
+                    
+            if 'loan_summary' in calc:
+                # Add default values for new summary fields
+                if 'total_insurance_fees_2' not in calc['loan_summary']:
+                    calc['loan_summary']['total_insurance_fees_2'] = 0
+                if 'combined_insurance_fees' not in calc['loan_summary']:
+                    calc['loan_summary']['combined_insurance_fees'] = calc['loan_summary'].get('total_insurance_fees', 0)
+                    
+            # Handle amortization schedule legacy data
+            if 'amortization_schedule' in calc:
+                for payment in calc['amortization_schedule']:
+                    if 'insurance_fee_2' not in payment:
+                        payment['insurance_fee_2'] = 0
+                    if 'total_insurance_fees' not in payment:
+                        payment['total_insurance_fees'] = payment.get('insurance_fee', 0)
+            
             results.append(LoanResult(**calc))
         return results
     except Exception as e:
