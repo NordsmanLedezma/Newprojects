@@ -329,7 +329,7 @@ def create_excel_report(loan_result: LoanResult) -> str:
         schedule_sheet.cell(row=row_idx, column=12, value=f"{payment.cumulative_principal:.2f}")
     
     # Adjust column widths for schedule
-    for col in range(1, 11):
+    for col in range(1, 13):
         schedule_sheet.column_dimensions[get_column_letter(col)].width = 15
     
     # Save to temporary file
