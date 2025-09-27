@@ -95,10 +95,33 @@ def calculate_monthly_payment(principal: float, annual_rate: float, num_payments
     payment = principal * (monthly_rate * (1 + monthly_rate) ** num_payments) / ((1 + monthly_rate) ** num_payments - 1)
     return payment
 
+def get_effective_interest_rate(loan_input: LoanInput, payment_number: int) -> float:
+    """Get the effective interest rate for a specific payment"""
+    if loan_input.rate_type == "fixed":
+        return loan_input.interest_rate
+    
+    # For floating rate, find the applicable reference rate
+    if loan_input.reference_rate_schedule:
+        # Find the most recent rate applicable to this payment
+        applicable_rate = loan_input.interest_rate  # Default to initial rate
+        for rate_schedule in loan_input.reference_rate_schedule:
+            if rate_schedule.payment_number <= payment_number:
+                applicable_rate = rate_schedule.reference_rate
+            else:
+                break
+        
+        # Add spread (convert basis points to percentage)
+        spread_percentage = (loan_input.spread_bps or 0) / 100
+        return applicable_rate + spread_percentage
+    else:
+        # No schedule provided, use initial rate + spread
+        spread_percentage = (loan_input.spread_bps or 0) / 100
+        return loan_input.interest_rate + spread_percentage
+
 def generate_amortization_schedule(loan_input: LoanInput) -> tuple[LoanSummary, List[AmortizationPayment]]:
-    """Generate complete amortization schedule"""
+    """Generate complete amortization schedule with floating rate support"""
     principal = loan_input.loan_amount
-    annual_rate = loan_input.interest_rate
+    initial_rate = loan_input.interest_rate
     term_months = loan_input.term_years * 12
     grace_period = loan_input.grace_period_months
     
@@ -108,9 +131,20 @@ def generate_amortization_schedule(loan_input: LoanInput) -> tuple[LoanSummary, 
     # Adjust principal for upfront commission (reduce available funds)
     net_principal = principal - upfront_commission
     
-    # Calculate monthly payment (after grace period)
+    # For floating rate loans, we'll calculate payment based on initial rate
+    # and recalculate as rates change
+    if loan_input.rate_type == "floating":
+        effective_initial_rate = get_effective_interest_rate(loan_input, 1)
+    else:
+        effective_initial_rate = initial_rate
+    
+    # Calculate initial monthly payment (after grace period)
     payment_months = term_months - grace_period
-    monthly_payment = calculate_monthly_payment(net_principal, annual_rate, payment_months)
+    if loan_input.rate_type == "fixed":
+        monthly_payment = calculate_monthly_payment(net_principal, effective_initial_rate, payment_months)
+    else:
+        # For floating rate, we'll recalculate payment amount based on remaining balance and current rate
+        monthly_payment = calculate_monthly_payment(net_principal, effective_initial_rate, payment_months)
     
     # Insurance fee per payment
     monthly_insurance_fee = principal * loan_input.insurance_fee_bps / 10000 / 12
