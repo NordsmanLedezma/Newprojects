@@ -278,16 +278,26 @@ def create_excel_report(loan_result: LoanResult) -> str:
     loan_input = loan_result.loan_input
     summary = loan_result.loan_summary
     
+    # Calculate end date
+    beginning_date = datetime.strptime(loan_input.beginning_date, "%Y-%m-%d")
+    last_payment = loan_result.amortization_schedule[-1] if loan_result.amortization_schedule else None
+    end_date = last_payment.payment_date if last_payment else "N/A"
+    
     summary_data = [
         ["Loan Details", ""],
         ["Loan Amount", f"{loan_input.loan_amount:,.2f} {loan_input.currency}"],
         ["Interest Rate", f"{loan_input.interest_rate:.2f}%"],
-        ["Term", f"{loan_input.term_years} years"],
+        ["Term", f"{loan_input.term_years} years ({len(loan_result.amortization_schedule)} payments)"],
         ["Rate Type", loan_input.rate_type.title()],
         ["Grace Period", f"{loan_input.grace_period_months} months"],
         ["Upfront Commission", f"{loan_input.upfront_commission_bps} bps"],
         ["Primary Insurance Fee", f"{loan_input.insurance_fee_bps} bps annually"],
         ["Secondary Insurance Fee", f"{loan_input.insurance_fee_2_bps} bps annually"],
+        ["", ""],
+        ["Important Dates", ""],
+        ["Loan Beginning Date", loan_input.beginning_date],
+        ["First Payment Date", loan_result.amortization_schedule[0].payment_date if loan_result.amortization_schedule else "N/A"],
+        ["Final Payment Date", end_date],
         ["", ""],
         ["Payment Summary", ""],
         ["Monthly Payment", f"{summary.monthly_payment:,.2f} {loan_input.currency}"],
