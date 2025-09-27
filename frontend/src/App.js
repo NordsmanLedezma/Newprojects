@@ -140,6 +140,7 @@ function App() {
         grace_period_months: parseInt(loanInput.grace_period_months),
         upfront_commission_bps: parseFloat(loanInput.upfront_commission_bps),
         insurance_fee_bps: parseFloat(loanInput.insurance_fee_bps),
+        insurance_fee_2_bps: parseFloat(loanInput.insurance_fee_2_bps),
         spread_bps: parseFloat(loanInput.spread_bps),
         reference_rate_schedule: loanInput.rate_type === 'floating' 
           ? referenceRateSchedule.filter(r => r.reference_rate !== '').map(r => ({
