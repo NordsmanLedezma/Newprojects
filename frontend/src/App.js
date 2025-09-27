@@ -641,6 +641,19 @@ function App() {
                             <span className="text-gray-600">Grace Period:</span>
                             <span className="font-semibold">{loanResult.loan_input.grace_period_months} months</span>
                           </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Beginning Date:</span>
+                            <span className="font-semibold">{new Date(loanResult.loan_input.beginning_date).toLocaleDateString()}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Final Payment:</span>
+                            <span className="font-semibold">
+                              {loanResult.amortization_schedule.length > 0 
+                                ? new Date(loanResult.amortization_schedule[loanResult.amortization_schedule.length - 1].payment_date).toLocaleDateString()
+                                : 'N/A'
+                              }
+                            </span>
+                          </div>
                           <Separator />
                           <div className="flex justify-between">
                             <span className="text-gray-600">Effective Rate:</span>
