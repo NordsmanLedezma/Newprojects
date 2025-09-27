@@ -165,23 +165,91 @@ function App() {
 
   const handleExportExcel = async (loanId) => {
     try {
+      // Show loading toast
+      toast.loading('Preparing Excel download...', { id: 'excel-export' });
+      
       const response = await axios.post(`${API}/export-excel/${loanId}`, {}, {
-        responseType: 'blob'
+        responseType: 'blob',
+        headers: {
+          'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        }
       });
       
-      const url = window.URL.createObjectURL(new Blob([response.data]));
+      // Check if we got a proper blob response
+      if (!response.data || response.data.size === 0) {
+        throw new Error('Empty file received from server');
+      }
+      
+      // Create filename with timestamp for uniqueness
+      const timestamp = new Date().toISOString().slice(0, 16).replace(/[-:]/g, '');
+      const filename = `loan_calculation_${loanId.substring(0, 8)}_${timestamp}.xlsx`;
+      
+      // Create blob URL
+      const blob = new Blob([response.data], { 
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+      });
+      const url = window.URL.createObjectURL(blob);
+      
+      // Create download link with enhanced attributes
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', `loan_calculation_${loanId.substring(0, 8)}.xlsx`);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
+      link.download = filename;
+      link.setAttribute('target', '_blank');
+      link.setAttribute('rel', 'noopener noreferrer');
       
-      toast.success('Excel file downloaded successfully!');
+      // Append to body, click, and clean up
+      document.body.appendChild(link);
+      
+      // Force click for better browser compatibility
+      if (link.click) {
+        link.click();
+      } else {
+        // Fallback for older browsers
+        const event = new MouseEvent('click', {
+          view: window,
+          bubbles: true,
+          cancelable: true
+        });
+        link.dispatchEvent(event);
+      }
+      
+      // Clean up
+      setTimeout(() => {
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      }, 100);
+      
+      // Update toast to success
+      toast.success(
+        <div>
+          <div className="font-semibold">Excel file downloaded!</div>
+          <div className="text-sm text-gray-600">Check your Downloads folder for: {filename}</div>
+        </div>,
+        { 
+          id: 'excel-export',
+          duration: 5000 
+        }
+      );
+      
     } catch (error) {
-      toast.error('Error exporting to Excel: ' + (error.response?.data?.detail || error.message));
-      console.error('Error exporting Excel:', error);
+      console.error('Excel export error:', error);
+      
+      // Update toast to error
+      toast.error(
+        <div>
+          <div className="font-semibold">Download failed</div>
+          <div className="text-sm text-gray-600">
+            {error.response?.status === 404 
+              ? 'Loan calculation not found. Please recalculate and try again.'
+              : error.response?.data?.detail || error.message || 'Please try again or contact support'
+            }
+          </div>
+        </div>,
+        { 
+          id: 'excel-export',
+          duration: 8000 
+        }
+      );
     }
   };
 
