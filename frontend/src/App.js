@@ -67,7 +67,28 @@ function App() {
 
   const handleCalculate = async () => {
     if (!loanInput.loan_amount || !loanInput.interest_rate || !loanInput.term_years) {
-      toast.error('Please fill in all required fields');
+      toast.error('Please fill in all required fields: Loan Amount, Interest Rate, and Term Years', {
+        duration: 5000,
+        style: {
+          background: '#fee2e2',
+          color: '#dc2626',
+          border: '1px solid #fecaca'
+        }
+      });
+      return;
+    }
+
+    // Additional validation
+    if (parseFloat(loanInput.loan_amount) <= 0) {
+      toast.error('Loan amount must be greater than 0');
+      return;
+    }
+    if (parseFloat(loanInput.interest_rate) < 0 || parseFloat(loanInput.interest_rate) > 50) {
+      toast.error('Interest rate must be between 0% and 50%');
+      return;
+    }
+    if (parseInt(loanInput.term_years) < 1 || parseInt(loanInput.term_years) > 30) {
+      toast.error('Loan term must be between 1 and 30 years');
       return;
     }
 
