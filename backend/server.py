@@ -194,6 +194,7 @@ def generate_amortization_schedule(loan_input: LoanInput) -> tuple[LoanSummary, 
         cumulative_interest += interest_payment
         cumulative_principal += principal_payment
         cumulative_insurance += monthly_insurance_fee
+        cumulative_insurance_2 += monthly_insurance_fee_2
         
         # Calculate payment date (assuming monthly payments)
         payment_date = datetime.now(timezone.utc).replace(day=1)
