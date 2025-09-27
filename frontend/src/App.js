@@ -320,6 +320,18 @@ function App() {
                   </div>
                 </div>
 
+                <div>
+                  <Label htmlFor="beginning_date" className="font-medium text-gray-700">Loan Beginning Date *</Label>
+                  <Input
+                    id="beginning_date"
+                    data-testid="beginning-date-input"
+                    type="date"
+                    value={loanInput.beginning_date}
+                    onChange={(e) => handleInputChange('beginning_date', e.target.value)}
+                    className="mt-1"
+                  />
+                </div>
+
                 <Separator />
                 
                 <div className="space-y-4">
