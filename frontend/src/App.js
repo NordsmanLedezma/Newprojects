@@ -221,10 +221,10 @@ function App() {
                   <div>
                     <Label htmlFor="currency" className="font-medium text-gray-700">Currency</Label>
                     <Select value={loanInput.currency} onValueChange={(value) => handleInputChange('currency', value)}>
-                      <SelectTrigger data-testid="currency-select" className="mt-1">
+                      <SelectTrigger data-testid="currency-select" className="mt-1 relative z-10">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="z-50">
                         {currencies.map(currency => (
                           <SelectItem key={currency} value={currency}>{currency}</SelectItem>
                         ))}
