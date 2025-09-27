@@ -731,14 +731,22 @@ function App() {
                           </div>
                         </div>
                         
-                        <Button 
-                          data-testid="export-excel-btn"
-                          onClick={() => handleExportExcel(loanResult.id)}
-                          className="w-full mt-4 bg-green-600 hover:bg-green-700 text-white"
-                        >
-                          <Download className="h-4 w-4 mr-2" />
-                          Export to Excel
-                        </Button>
+                        <div className="mt-4 space-y-2">
+                          <div className="text-xs text-gray-600 text-center">
+                            📁 File will be saved to your Downloads folder
+                          </div>
+                          <Button 
+                            data-testid="export-excel-btn"
+                            onClick={() => handleExportExcel(loanResult.id)}
+                            className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl"
+                          >
+                            <Download className="h-4 w-4 mr-2" />
+                            Download Excel Report
+                          </Button>
+                          <div className="text-xs text-gray-500 text-center">
+                            Includes complete amortization schedule & loan summary
+                          </div>
+                        </div>
                       </CardContent>
                     </Card>
                   </div>
