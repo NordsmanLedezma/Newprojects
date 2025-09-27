@@ -331,6 +331,97 @@ function App() {
                       className="mt-1"
                     />
                   </div>
+
+                  {/* Floating Rate Specific Fields */}
+                  {loanInput.rate_type === 'floating' && (
+                    <div className="space-y-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                      <h5 className="font-semibold text-blue-800 flex items-center space-x-2">
+                        <Percent className="h-4 w-4" />
+                        <span>Floating Rate Configuration</span>
+                      </h5>
+                      
+                      <div>
+                        <Label htmlFor="spread_bps" className="font-medium text-gray-700">
+                          Spread (bps)
+                          <span className="text-sm text-gray-500 block">Added to Reference Rate: Reference Rate + Spread = Interest Rate</span>
+                        </Label>
+                        <Input
+                          id="spread_bps"
+                          data-testid="spread-input"
+                          type="number"
+                          min="0"
+                          max="1000"
+                          value={loanInput.spread_bps}
+                          onChange={(e) => handleInputChange('spread_bps', e.target.value)}
+                          placeholder="e.g., 150 (1.5%)"
+                          className="mt-1"
+                        />
+                      </div>
+
+                      <div>
+                        <div className="flex justify-between items-center mb-2">
+                          <Label className="font-medium text-gray-700">Reference Rate Schedule</Label>
+                          <Badge variant="secondary" className="text-xs">
+                            Interest Rate = {parseFloat(loanInput.interest_rate || 0).toFixed(2)}% + {parseFloat(loanInput.spread_bps || 0) / 100}%
+                          </Badge>
+                        </div>
+                        <div className="text-sm text-gray-600 mb-3">
+                          Define reference rates for different payment periods. If not specified, the initial rate will be used.
+                        </div>
+                        
+                        <div className="space-y-2 max-h-32 overflow-y-auto">
+                          {referenceRateSchedule.map((rate, index) => (
+                            <div key={index} className="flex items-center space-x-2 bg-white p-2 rounded border">
+                              <div className="flex-1">
+                                <Label className="text-xs text-gray-500">Payment #</Label>
+                                <Input
+                                  type="number"
+                                  min="1"
+                                  max={parseInt(loanInput.term_years) * 12 || 360}
+                                  value={rate.payment_number}
+                                  onChange={(e) => updateReferenceRateEntry(index, 'payment_number', e.target.value)}
+                                  className="text-sm"
+                                />
+                              </div>
+                              <div className="flex-1">
+                                <Label className="text-xs text-gray-500">Reference Rate (%)</Label>
+                                <Input
+                                  type="number"
+                                  step="0.01"
+                                  min="0"
+                                  max="50"
+                                  value={rate.reference_rate}
+                                  onChange={(e) => updateReferenceRateEntry(index, 'reference_rate', e.target.value)}
+                                  className="text-sm"
+                                  placeholder="e.g., 3.25"
+                                />
+                              </div>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => removeReferenceRateEntry(index)}
+                                className="text-red-600 hover:text-red-700"
+                              >
+                                ×
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                        
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={addReferenceRateEntry}
+                          className="w-full mt-2 text-blue-600 hover:text-blue-700"
+                          disabled={!loanInput.term_years}
+                        >
+                          + Add Reference Rate Entry
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                   
                   <div>
                     <Label htmlFor="upfront_commission_bps" className="font-medium text-gray-700">Upfront Commission (bps)</Label>
