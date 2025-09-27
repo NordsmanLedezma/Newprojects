@@ -210,6 +210,8 @@ def generate_amortization_schedule(loan_input: LoanInput) -> tuple[LoanSummary, 
             principal_payment=principal_payment,
             interest_payment=interest_payment,
             insurance_fee=monthly_insurance_fee,
+            insurance_fee_2=monthly_insurance_fee_2,
+            total_insurance_fees=total_monthly_insurance_fee,
             ending_balance=remaining_balance,
             cumulative_interest=cumulative_interest,
             cumulative_principal=cumulative_principal
