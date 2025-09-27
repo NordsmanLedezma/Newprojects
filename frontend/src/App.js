@@ -252,7 +252,14 @@ function App() {
                   </div>
                   
                   <div>
-                    <Label htmlFor="interest_rate" className="font-medium text-gray-700">Interest Rate (%) *</Label>
+                    <Label htmlFor="interest_rate" className="font-medium text-gray-700">
+                      {loanInput.rate_type === 'floating' ? 'Initial Reference Rate (%) *' : 'Interest Rate (%) *'}
+                      {loanInput.rate_type === 'floating' && (
+                        <span className="text-sm text-gray-500 block font-normal">
+                          Base rate before spread addition
+                        </span>
+                      )}
+                    </Label>
                     <Input
                       id="interest_rate"
                       data-testid="interest-rate-input"
@@ -260,7 +267,7 @@ function App() {
                       step="0.01"
                       value={loanInput.interest_rate}
                       onChange={(e) => handleInputChange('interest_rate', e.target.value)}
-                      placeholder="e.g., 3.50"
+                      placeholder={loanInput.rate_type === 'floating' ? 'e.g., 2.50 (reference rate)' : 'e.g., 3.50'}
                       className="mt-1"
                     />
                   </div>
