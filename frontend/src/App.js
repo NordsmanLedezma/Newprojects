@@ -27,6 +27,7 @@ function App() {
     grace_period_months: '0',
     upfront_commission_bps: '0',
     insurance_fee_bps: '0',
+    insurance_fee_2_bps: '0',
     spread_bps: '0'
   });
 
