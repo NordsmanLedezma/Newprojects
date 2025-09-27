@@ -66,6 +66,40 @@ function App() {
       ...prev,
       [field]: value
     }));
+
+    // Show/hide reference rate schedule when rate type changes
+    if (field === 'rate_type') {
+      setShowReferenceRateSchedule(value === 'floating');
+      if (value === 'fixed') {
+        setReferenceRateSchedule([]);
+      }
+    }
+  };
+
+  const addReferenceRateEntry = () => {
+    const termMonths = parseInt(loanInput.term_years) * 12 || 0;
+    const nextPaymentNumber = referenceRateSchedule.length > 0 
+      ? Math.max(...referenceRateSchedule.map(r => r.payment_number)) + 1 
+      : 1;
+    
+    if (nextPaymentNumber <= termMonths) {
+      setReferenceRateSchedule(prev => [
+        ...prev,
+        { payment_number: nextPaymentNumber, reference_rate: '' }
+      ]);
+    }
+  };
+
+  const updateReferenceRateEntry = (index, field, value) => {
+    setReferenceRateSchedule(prev => 
+      prev.map((item, i) => 
+        i === index ? { ...item, [field]: value } : item
+      )
+    );
+  };
+
+  const removeReferenceRateEntry = (index) => {
+    setReferenceRateSchedule(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleCalculate = async () => {
