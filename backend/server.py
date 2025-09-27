@@ -311,6 +311,27 @@ def create_excel_report(loan_result: LoanResult) -> str:
         ["Effective Annual Rate", f"{summary.effective_rate:.2f}%"]
     ]
     
+    # Add floating rate information if applicable
+    if loan_input.rate_type == "floating":
+        floating_rate_data = [
+            ["", ""],
+            ["Floating Rate Details", ""],
+            ["Initial Reference Rate", f"{loan_input.interest_rate:.2f}%"],
+            ["Spread", f"{loan_input.spread_bps} bps ({loan_input.spread_bps/100:.2f}%)"],
+            ["Initial Effective Rate", f"{loan_input.interest_rate + (loan_input.spread_bps/100):.2f}%"]
+        ]
+        
+        if loan_input.reference_rate_schedule:
+            floating_rate_data.append(["Rate Changes", ""])
+            for rate_change in loan_input.reference_rate_schedule:
+                effective_rate = rate_change.reference_rate + (loan_input.spread_bps/100)
+                floating_rate_data.append([
+                    f"Payment {rate_change.payment_number}",
+                    f"Ref: {rate_change.reference_rate:.2f}% + Spread: {loan_input.spread_bps/100:.2f}% = {effective_rate:.2f}%"
+                ])
+        
+        summary_data.extend(floating_rate_data)
+    
     for row_idx, (label, value) in enumerate(summary_data, 1):
         summary_sheet.cell(row=row_idx, column=1, value=label)
         summary_sheet.cell(row=row_idx, column=2, value=value)
