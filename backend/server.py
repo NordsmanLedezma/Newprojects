@@ -178,6 +178,35 @@ async def login(login_data: LoginRequest):
     raise HTTPException(status_code=400, detail="Credenciales incorrectas")
 
 # Admin endpoints
+@api_router.post("/admin/create-admin", response_model=Admin)
+async def create_admin(admin_data: AdminCreate, token_payload: dict = Depends(verify_token)):
+    if token_payload.get("user_type") != "admin":
+        raise HTTPException(status_code=403, detail="Acceso denegado")
+    
+    # Check if admin exists
+    existing = await db.admins.find_one({"username": admin_data.username})
+    if existing:
+        raise HTTPException(status_code=400, detail="El administrador ya existe")
+    
+    hashed_password = get_password_hash(admin_data.password)
+    admin_dict = admin_data.dict()
+    del admin_dict["password"]
+    admin_obj = Admin(**admin_dict)
+    admin_dict = admin_obj.dict()
+    admin_dict["hashed_password"] = hashed_password
+    admin_dict = prepare_for_mongo(admin_dict)
+    
+    await db.admins.insert_one(admin_dict)
+    return admin_obj
+
+@api_router.get("/admin/admins", response_model=List[Admin])
+async def get_admins(token_payload: dict = Depends(verify_token)):
+    if token_payload.get("user_type") != "admin":
+        raise HTTPException(status_code=403, detail="Acceso denegado")
+    
+    admins = await db.admins.find().to_list(1000)
+    return [Admin(**admin) for admin in admins]
+
 @api_router.post("/admin/users", response_model=User)
 async def create_user(user_data: UserCreate, token_payload: dict = Depends(verify_token)):
     if token_payload.get("user_type") != "admin":
