@@ -11,7 +11,7 @@ from typing import List, Optional, Dict, Any
 import uuid
 from datetime import datetime, timezone
 import jwt
-from passlib.context import CryptContext
+import hashlib
 import openpyxl
 from openpyxl.styles import Font, Alignment, PatternFill
 from io import BytesIO
