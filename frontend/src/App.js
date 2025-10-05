@@ -168,6 +168,7 @@ function AdminDashboard() {
     if (activeTab === 'users') loadUsers();
     if (activeTab === 'securities') loadSecurities();
     if (activeTab === 'holdings') loadHoldings();
+    if (activeTab === 'admins') loadAdmins();
   }, [activeTab]);
 
   const loadUsers = async () => {
