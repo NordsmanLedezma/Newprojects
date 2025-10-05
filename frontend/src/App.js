@@ -235,6 +235,20 @@ function AdminDashboard() {
     setLoading(false);
   };
 
+  const createAdmin = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      await axios.post(`${API}/admin/create-admin`, newAdmin);
+      setNewAdmin({ username: '', password: '', email: '' });
+      loadAdmins();
+      toast.success('Administrador creado exitosamente');
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Error al crear administrador');
+    }
+    setLoading(false);
+  };
+
   const toggleUserStatus = async (userId) => {
     try {
       await axios.put(`${API}/admin/users/${userId}/toggle`);
