@@ -159,6 +159,8 @@ function AdminDashboard() {
     isin_code: '', latinex_code: '', security_description: '', 
     coupon: '', issue_date: '', maturity_date: ''
   });
+  const [newAdmin, setNewAdmin] = useState({ username: '', password: '', email: '' });
+  const [admins, setAdmins] = useState([]);
   const [loading, setLoading] = useState(false);
   const { logout } = useAuth();
 
