@@ -198,6 +198,15 @@ function AdminDashboard() {
     }
   };
 
+  const loadAdmins = async () => {
+    try {
+      const response = await axios.get(`${API}/admin/admins`);
+      setAdmins(response.data);
+    } catch (error) {
+      toast.error('Error al cargar administradores');
+    }
+  };
+
   const createUser = async (e) => {
     e.preventDefault();
     setLoading(true);
