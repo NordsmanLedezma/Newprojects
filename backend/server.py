@@ -24,7 +24,6 @@ load_dotenv(ROOT_DIR / '.env')
 # Security
 SECRET_KEY = "your-secret-key-here"  # In production, use environment variable
 ALGORITHM = "HS256"
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto", bcrypt__rounds=12)
 security = HTTPBearer()
 
 # MongoDB connection
