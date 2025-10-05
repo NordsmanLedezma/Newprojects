@@ -577,6 +577,83 @@ function AdminDashboard() {
               </CardContent>
             </Card>
           </TabsContent>
+
+          {/* Admins Tab */}
+          <TabsContent value="admins" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Crear Nuevo Administrador</CardTitle>
+                <CardDescription>Agregue un nuevo administrador del sistema</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={createAdmin} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="admin-username">Usuario</Label>
+                    <Input
+                      id="admin-username"
+                      value={newAdmin.username}
+                      onChange={(e) => setNewAdmin({ ...newAdmin, username: e.target.value })}
+                      required
+                      data-testid="new-admin-username"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="admin-email">Email</Label>
+                    <Input
+                      id="admin-email"
+                      type="email"
+                      value={newAdmin.email}
+                      onChange={(e) => setNewAdmin({ ...newAdmin, email: e.target.value })}
+                      required
+                      data-testid="new-admin-email"
+                    />
+                  </div>
+                  <div className="md:col-span-2 space-y-2">
+                    <Label htmlFor="admin-password">Contraseña</Label>
+                    <Input
+                      id="admin-password"
+                      type="password"
+                      value={newAdmin.password}
+                      onChange={(e) => setNewAdmin({ ...newAdmin, password: e.target.value })}
+                      required
+                      data-testid="new-admin-password"
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <Button type="submit" disabled={loading} data-testid="create-admin-button">
+                      {loading ? 'Creando...' : 'Crear Administrador'}
+                    </Button>
+                  </div>
+                </form>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Administradores Registrados</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Usuario</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Fecha de Creación</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {admins.map((admin) => (
+                      <TableRow key={admin.id}>
+                        <TableCell className="font-medium">{admin.username}</TableCell>
+                        <TableCell>{admin.email}</TableCell>
+                        <TableCell>{new Date(admin.created_at).toLocaleDateString('es-ES')}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
         </Tabs>
       </div>
     </div>
