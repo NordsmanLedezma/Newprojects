@@ -864,6 +864,7 @@ function AppWithProviders() {
     <AuthProvider>
       <BrowserRouter>
         <App />
+        <Toaster richColors position="top-right" />
       </BrowserRouter>
     </AuthProvider>
   );
