@@ -500,6 +500,14 @@ function AdminDashboard() {
 
           {/* Securities Tab */}
           <TabsContent value="securities" className="space-y-6">
+            <Alert className="bg-blue-50 border-blue-200">
+              <AlertDescription>
+                <strong>💡 Importación de Excel:</strong> Puede importar múltiples valores desde un archivo Excel. 
+                El archivo debe contener las columnas: Código ISIN, Código Latinex, Descripción del Valor, Cupón, 
+                Fecha de Emisión, Fecha de Vencimiento. Use el botón "Exportar a Excel" para ver el formato exacto.
+              </AlertDescription>
+            </Alert>
+            
             <Card>
               <CardHeader>
                 <CardTitle>Agregar Nuevo Valor</CardTitle>
