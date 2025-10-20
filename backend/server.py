@@ -282,6 +282,23 @@ async def get_securities(token_payload: dict = Depends(verify_token)):
     securities = await db.securities.find().to_list(1000)
     return [Security(**security) for security in securities]
 
+@api_router.delete("/admin/securities/clear-all")
+async def clear_all_securities(token_payload: dict = Depends(verify_token)):
+    if token_payload.get("user_type") != "admin":
+        raise HTTPException(status_code=403, detail="Acceso denegado")
+    
+    # Get count before deletion
+    count_before = await db.securities.count_documents({})
+    
+    # Delete all securities
+    result = await db.securities.delete_many({})
+    
+    return {
+        "message": f"Eliminados {result.deleted_count} valores registrados",
+        "deleted_count": result.deleted_count,
+        "total_before": count_before
+    }
+
 @api_router.get("/securities/search/{code}")
 async def search_security(code: str, token_payload: dict = Depends(verify_token)):
     """Search security by ISIN or Latinex code"""
