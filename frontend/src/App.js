@@ -161,6 +161,7 @@ function AdminDashboard() {
   });
   const [newAdmin, setNewAdmin] = useState({ username: '', password: '', email: '' });
   const [admins, setAdmins] = useState([]);
+  const [importFile, setImportFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const { logout } = useAuth();
 
