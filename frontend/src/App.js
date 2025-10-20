@@ -620,7 +620,23 @@ function AdminDashboard() {
 
             <Card>
               <CardHeader>
-                <CardTitle>Valores Registrados</CardTitle>
+                <div className="flex justify-between items-center">
+                  <div>
+                    <CardTitle>Valores Registrados</CardTitle>
+                    <CardDescription>{securities.length} valores en la base de datos</CardDescription>
+                  </div>
+                  {securities.length > 0 && (
+                    <Button
+                      onClick={clearAllSecurities}
+                      disabled={loading}
+                      variant="destructive"
+                      className="bg-red-600 hover:bg-red-700"
+                      data-testid="clear-all-securities-button"
+                    >
+                      {loading ? 'Limpiando...' : 'Limpiar Todos'}
+                    </Button>
+                  )}
+                </div>
               </CardHeader>
               <CardContent>
                 <Table>
