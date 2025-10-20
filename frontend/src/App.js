@@ -306,10 +306,15 @@ function AdminDashboard() {
       const result = response.data;
       
       if (result.total_errors > 0) {
-        toast.warning(`${result.message}. Ver consola para detalles de errores.`);
-        console.log('Errores de importación:', result.errors);
+        // Show detailed error information
+        const errorSummary = `${result.message}\n\nDetalles de errores:\n${result.errors.slice(0, 3).join('\n')}${result.errors.length > 3 ? '\n...' : ''}`;
+        toast.error(`Importación con errores: ${result.imported_count} valores importados, ${result.total_errors} errores`, {
+          description: result.errors.slice(0, 2).join('; '),
+          duration: 8000
+        });
+        console.log('Errores detallados de importación:', result.errors);
       } else {
-        toast.success(result.message);
+        toast.success(`¡Importación exitosa! ${result.imported_count} valores importados correctamente`);
       }
       
       // Refresh securities list and clear file
