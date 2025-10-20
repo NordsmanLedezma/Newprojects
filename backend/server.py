@@ -388,6 +388,103 @@ async def update_master_holdings():
     if master_holdings:
         await db.master_holdings.insert_many(master_holdings)
 
+@api_router.post("/admin/import/excel")
+async def import_from_excel(file: UploadFile = File(...), token_payload: dict = Depends(verify_token)):
+    if token_payload.get("user_type") != "admin":
+        raise HTTPException(status_code=403, detail="Acceso denegado")
+    
+    if not file.filename.endswith(('.xlsx', '.xls')):
+        raise HTTPException(status_code=400, detail="Formato de archivo no válido. Use archivos Excel (.xlsx, .xls)")
+    
+    try:
+        # Read Excel file
+        contents = await file.read()
+        wb = openpyxl.load_workbook(BytesIO(contents))
+        
+        # Look for "Valores_ISIN" sheet or first sheet
+        sheet_name = "Valores_ISIN" if "Valores_ISIN" in wb.sheetnames else wb.sheetnames[0]
+        ws = wb[sheet_name]
+        
+        imported_count = 0
+        errors = []
+        
+        # Expected columns: Código ISIN, Código Latinex, Descripción del Valor, Cupón, Fecha de Emisión, Fecha de Vencimiento
+        for row_num, row in enumerate(ws.iter_rows(min_row=2, values_only=True), start=2):
+            if not any(row):  # Skip empty rows
+                continue
+            
+            try:
+                isin_code = str(row[0]).strip() if row[0] else None
+                latinex_code = str(row[1]).strip() if row[1] else None
+                security_description = str(row[2]).strip() if row[2] else ""
+                coupon = str(row[3]).strip() if row[3] else ""
+                issue_date = str(row[4]).strip() if row[4] else ""
+                maturity_date = str(row[5]).strip() if row[5] else ""
+                
+                # Validate required fields
+                if not security_description:
+                    errors.append(f"Fila {row_num}: Descripción del valor es requerida")
+                    continue
+                
+                if not isin_code and not latinex_code:
+                    errors.append(f"Fila {row_num}: Se requiere al menos un código ISIN o Latinex")
+                    continue
+                
+                if not coupon or not issue_date or not maturity_date:
+                    errors.append(f"Fila {row_num}: Cupón, fecha de emisión y fecha de vencimiento son requeridos")
+                    continue
+                
+                # Check for duplicates in database
+                query = {}
+                if isin_code:
+                    query["isin_code"] = isin_code
+                if latinex_code:
+                    if query:
+                        query = {"$or": [query, {"latinex_code": latinex_code}]}
+                    else:
+                        query["latinex_code"] = latinex_code
+                
+                existing = await db.securities.find_one(query)
+                if existing:
+                    errors.append(f"Fila {row_num}: Ya existe un valor con código ISIN '{isin_code}' o Latinex '{latinex_code}'")
+                    continue
+                
+                # Create security object
+                security_data = {
+                    "isin_code": isin_code if isin_code else None,
+                    "latinex_code": latinex_code if latinex_code else None,
+                    "security_description": security_description,
+                    "coupon": coupon,
+                    "issue_date": issue_date,
+                    "maturity_date": maturity_date
+                }
+                
+                security_obj = Security(**security_data)
+                security_dict = prepare_for_mongo(security_obj.dict())
+                
+                await db.securities.insert_one(security_dict)
+                imported_count += 1
+                
+            except Exception as e:
+                errors.append(f"Fila {row_num}: Error procesando datos - {str(e)}")
+                continue
+        
+        # Prepare response
+        response_data = {
+            "message": f"Importación completada: {imported_count} valores importados",
+            "imported_count": imported_count,
+            "total_errors": len(errors),
+            "errors": errors[:10] if errors else []  # Limit to first 10 errors
+        }
+        
+        if errors:
+            response_data["message"] += f", {len(errors)} errores encontrados"
+        
+        return response_data
+        
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Error procesando archivo: {str(e)}")
+
 @api_router.get("/admin/export/excel")
 async def export_to_excel(token_payload: dict = Depends(verify_token)):
     if token_payload.get("user_type") != "admin":
