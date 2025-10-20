@@ -254,6 +254,85 @@ class BondsAPITester:
         )
         return success
 
+    def create_test_excel_file(self):
+        """Create a test Excel file for import testing"""
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.title = "Valores_ISIN"
+        
+        # Headers
+        headers = ["Código ISIN", "Código Latinex", "Descripción del Valor", 
+                  "Cupón", "Fecha de Emisión", "Fecha de Vencimiento"]
+        ws.append(headers)
+        
+        # Test data
+        timestamp = datetime.now().strftime('%H%M%S')
+        test_data = [
+            [f"US{timestamp}001", f"LTST{timestamp}001", "Test Bond Import 1", "4.5%", "2024-01-01", "2029-01-01"],
+            [f"US{timestamp}002", f"LTST{timestamp}002", "Test Bond Import 2", "5.0%", "2024-02-01", "2030-02-01"],
+            ["", f"LTST{timestamp}003", "Test Bond Import 3 (No ISIN)", "3.75%", "2024-03-01", "2028-03-01"]
+        ]
+        
+        for row in test_data:
+            ws.append(row)
+        
+        # Save to BytesIO
+        excel_buffer = BytesIO()
+        wb.save(excel_buffer)
+        excel_buffer.seek(0)
+        
+        return excel_buffer
+
+    def test_excel_import(self):
+        """Test Excel import functionality"""
+        print(f"\n🔍 Testing Excel Import...")
+        
+        # Create test Excel file
+        excel_file = self.create_test_excel_file()
+        
+        # Prepare file for upload
+        files = {
+            'file': ('test_valores.xlsx', excel_file, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        }
+        
+        success, response = self.run_test(
+            "Excel Import (Valid File)",
+            "POST",
+            "admin/import/excel",
+            200,
+            files=files,
+            token=self.admin_token
+        )
+        
+        if success and isinstance(response, dict):
+            print(f"   Import result: {response.get('message', 'No message')}")
+            print(f"   Imported count: {response.get('imported_count', 0)}")
+            if response.get('errors'):
+                print(f"   Errors: {len(response['errors'])}")
+        
+        return success
+
+    def test_invalid_excel_import(self):
+        """Test Excel import with invalid file"""
+        print(f"\n🔍 Testing Invalid Excel Import...")
+        
+        # Create a text file instead of Excel
+        fake_file = BytesIO(b"This is not an Excel file")
+        files = {
+            'file': ('fake.txt', fake_file, 'text/plain')
+        }
+        
+        success, response = self.run_test(
+            "Excel Import (Invalid File)",
+            "POST",
+            "admin/import/excel",
+            400,  # Should return 400 for invalid file format
+            files=files,
+            token=self.admin_token
+        )
+        
+        return success
+
 def main():
     print("🚀 Starting Panamanian Bonds API Testing...")
     print("=" * 60)
