@@ -338,6 +338,33 @@ function AdminDashboard() {
               <h1 className="text-xl font-semibold text-gray-900">Panel de Administración</h1>
             </div>
             <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
+                <input
+                  id="excel-import"
+                  type="file"
+                  accept=".xlsx,.xls"
+                  onChange={(e) => setImportFile(e.target.files[0])}
+                  className="hidden"
+                />
+                <Button
+                  onClick={() => document.getElementById('excel-import').click()}
+                  variant="outline"
+                  className="bg-blue-50 hover:bg-blue-100 border-blue-200"
+                  data-testid="select-import-file-button"
+                >
+                  Seleccionar Archivo
+                </Button>
+                {importFile && (
+                  <Button
+                    onClick={importFromExcel}
+                    disabled={loading}
+                    className="bg-blue-600 hover:bg-blue-700"
+                    data-testid="import-excel-button"
+                  >
+                    {loading ? 'Importando...' : 'Importar Excel'}
+                  </Button>
+                )}
+              </div>
               <Button 
                 onClick={exportToExcel}
                 disabled={loading}
