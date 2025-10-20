@@ -16,7 +16,7 @@ class BondsAPITester:
         self.created_user_id = None
         self.created_security_id = None
 
-    def run_test(self, name, method, endpoint, expected_status, data=None, token=None):
+    def run_test(self, name, method, endpoint, expected_status, data=None, token=None, files=None):
         """Run a single API test"""
         url = f"{self.api_url}/{endpoint}"
         headers = {'Content-Type': 'application/json'}
@@ -31,7 +31,13 @@ class BondsAPITester:
             if method == 'GET':
                 response = requests.get(url, headers=headers, timeout=10)
             elif method == 'POST':
-                response = requests.post(url, json=data, headers=headers, timeout=10)
+                if files:
+                    # Remove Content-Type for file uploads
+                    if 'Content-Type' in headers:
+                        del headers['Content-Type']
+                    response = requests.post(url, files=files, headers=headers, timeout=10)
+                else:
+                    response = requests.post(url, json=data, headers=headers, timeout=10)
             elif method == 'PUT':
                 response = requests.put(url, json=data, headers=headers, timeout=10)
 
