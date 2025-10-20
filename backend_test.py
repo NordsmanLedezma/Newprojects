@@ -333,6 +333,109 @@ class BondsAPITester:
         
         return success
 
+    def test_clear_all_securities(self):
+        """Test clearing all securities - MAIN FEATURE TO TEST"""
+        print(f"\n🔍 Testing Clear All Securities...")
+        
+        # First, get current count of securities
+        success, response = self.run_test(
+            "Get Securities Count (Before Clear)",
+            "GET",
+            "admin/securities",
+            200,
+            token=self.admin_token
+        )
+        
+        if success and isinstance(response, list):
+            count_before = len(response)
+            print(f"   Securities before clear: {count_before}")
+        else:
+            count_before = 0
+            print("   Could not get securities count before clear")
+        
+        # Test the clear all endpoint
+        success, response = self.run_test(
+            "Clear All Securities",
+            "DELETE",
+            "admin/securities/clear-all",
+            200,
+            token=self.admin_token
+        )
+        
+        if success and isinstance(response, dict):
+            deleted_count = response.get('deleted_count', 0)
+            total_before = response.get('total_before', 0)
+            message = response.get('message', '')
+            
+            print(f"   Result: {message}")
+            print(f"   Deleted count: {deleted_count}")
+            print(f"   Total before: {total_before}")
+            
+            # Verify the list is now empty
+            success_verify, response_verify = self.run_test(
+                "Verify Securities Cleared",
+                "GET",
+                "admin/securities",
+                200,
+                token=self.admin_token
+            )
+            
+            if success_verify and isinstance(response_verify, list):
+                count_after = len(response_verify)
+                print(f"   Securities after clear: {count_after}")
+                
+                if count_after == 0:
+                    print("✅ Clear all functionality working correctly")
+                    return True
+                else:
+                    print(f"❌ Clear all failed - still {count_after} securities remaining")
+                    return False
+            else:
+                print("❌ Could not verify securities were cleared")
+                return False
+        else:
+            print("❌ Clear all endpoint failed or returned unexpected response")
+            return False
+
+    def test_clear_all_permissions(self):
+        """Test that only admins can clear all securities"""
+        print(f"\n🔍 Testing Clear All Permissions (Non-Admin Access)...")
+        
+        # Try to clear all securities with user token (should fail)
+        success, response = self.run_test(
+            "Clear All Securities (User Token - Should Fail)",
+            "DELETE",
+            "admin/securities/clear-all",
+            403,  # Should return 403 Forbidden
+            token=self.user_token
+        )
+        
+        if success:
+            print("✅ Permission validation working - non-admin access denied")
+            return True
+        else:
+            print("❌ Permission validation failed - non-admin was able to access")
+            return False
+
+    def test_clear_all_without_token(self):
+        """Test clear all without authentication token"""
+        print(f"\n🔍 Testing Clear All Without Token...")
+        
+        success, response = self.run_test(
+            "Clear All Securities (No Token - Should Fail)",
+            "DELETE",
+            "admin/securities/clear-all",
+            401,  # Should return 401 Unauthorized
+            token=None
+        )
+        
+        if success:
+            print("✅ Authentication validation working - no token access denied")
+            return True
+        else:
+            print("❌ Authentication validation failed - no token access allowed")
+            return False
+
 def main():
     print("🚀 Starting Panamanian Bonds API Testing...")
     print("=" * 60)
