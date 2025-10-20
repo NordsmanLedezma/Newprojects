@@ -391,7 +391,7 @@ function AdminDashboard() {
                   className="bg-blue-50 hover:bg-blue-100 border-blue-200"
                   data-testid="select-import-file-button"
                 >
-                  Seleccionar Archivo
+                  {importFile ? `Archivo: ${importFile.name}` : 'Seleccionar Archivo Excel'}
                 </Button>
                 {importFile && (
                   <Button
@@ -400,7 +400,7 @@ function AdminDashboard() {
                     className="bg-blue-600 hover:bg-blue-700"
                     data-testid="import-excel-button"
                   >
-                    {loading ? 'Importando...' : 'Importar Excel'}
+                    {loading ? 'Importando...' : `Importar ${importFile.name}`}
                   </Button>
                 )}
               </div>
