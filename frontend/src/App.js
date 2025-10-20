@@ -325,6 +325,36 @@ function AdminDashboard() {
     setLoading(false);
   };
 
+  const clearAllSecurities = async () => {
+    const confirmed = window.confirm(
+      '⚠️ ADVERTENCIA: Esta acción eliminará TODOS los valores registrados de la base de datos.\n\n' +
+      'Esta operación NO se puede deshacer.\n\n' +
+      '¿Está seguro que desea continuar?'
+    );
+    
+    if (!confirmed) return;
+    
+    const doubleConfirm = window.confirm(
+      '🚨 CONFIRMACIÓN FINAL\n\n' +
+      'Está a punto de eliminar TODOS los valores registrados.\n\n' +
+      'Haga clic en "Aceptar" para confirmar la eliminación permanente.'
+    );
+    
+    if (!doubleConfirm) return;
+
+    try {
+      setLoading(true);
+      const response = await axios.delete(`${API}/admin/securities/clear-all`);
+      
+      toast.success(response.data.message);
+      loadSecurities(); // Refresh the list
+      
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Error al limpiar valores');
+    }
+    setLoading(false);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
