@@ -373,6 +373,10 @@ def main():
     # Test additional admin functions
     tester.test_toggle_user_status()
     tester.test_export_excel()
+    
+    # Test Excel import functionality
+    tester.test_excel_import()
+    tester.test_invalid_excel_import()
 
     # Print final results
     print("\n" + "=" * 60)
