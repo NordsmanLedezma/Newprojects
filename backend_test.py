@@ -481,6 +481,18 @@ def main():
     tester.test_excel_import()
     tester.test_invalid_excel_import()
 
+    # Test Clear All Securities functionality (MAIN FEATURE)
+    print("\n" + "🔥" * 30)
+    print("🎯 TESTING CLEAR ALL SECURITIES FUNCTIONALITY")
+    print("🔥" * 30)
+    
+    # Test permission validations first
+    tester.test_clear_all_permissions()
+    tester.test_clear_all_without_token()
+    
+    # Test the actual clear all functionality
+    tester.test_clear_all_securities()
+
     # Print final results
     print("\n" + "=" * 60)
     print(f"📊 FINAL RESULTS:")
