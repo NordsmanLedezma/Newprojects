@@ -382,7 +382,25 @@ function AdminDashboard() {
                   id="excel-import"
                   type="file"
                   accept=".xlsx,.xls"
-                  onChange={(e) => setImportFile(e.target.files[0])}
+                  onChange={(e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                      // Validate file type
+                      if (!file.name.toLowerCase().endsWith('.xlsx') && !file.name.toLowerCase().endsWith('.xls')) {
+                        toast.error('Formato de archivo no válido. Solo se permiten archivos Excel (.xlsx, .xls)');
+                        e.target.value = '';
+                        return;
+                      }
+                      // Validate file size (max 10MB)
+                      if (file.size > 10 * 1024 * 1024) {
+                        toast.error('El archivo es demasiado grande. Máximo 10MB permitido.');
+                        e.target.value = '';
+                        return;
+                      }
+                      setImportFile(file);
+                      toast.info(`Archivo seleccionado: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`);
+                    }
+                  }}
                   className="hidden"
                 />
                 <Button
