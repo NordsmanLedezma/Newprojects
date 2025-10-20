@@ -351,7 +351,11 @@ function AdminDashboard() {
       setLoading(true);
       const response = await axios.delete(`${API}/admin/securities/clear-all`);
       
-      toast.success(response.data.message);
+      const result = response.data;
+      toast.success(`✅ ${result.message}`, {
+        description: `Se eliminaron ${result.deleted_count} valores de un total de ${result.total_before}`,
+        duration: 5000
+      });
       loadSecurities(); // Refresh the list
       
     } catch (error) {
