@@ -286,6 +286,45 @@ function AdminDashboard() {
     setLoading(false);
   };
 
+  const importFromExcel = async () => {
+    if (!importFile) {
+      toast.error('Por favor seleccione un archivo');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const formData = new FormData();
+      formData.append('file', importFile);
+
+      const response = await axios.post(`${API}/admin/import/excel`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      const result = response.data;
+      
+      if (result.total_errors > 0) {
+        toast.warning(`${result.message}. Ver consola para detalles de errores.`);
+        console.log('Errores de importación:', result.errors);
+      } else {
+        toast.success(result.message);
+      }
+      
+      // Refresh securities list and clear file
+      loadSecurities();
+      setImportFile(null);
+      // Reset file input
+      const fileInput = document.getElementById('excel-import');
+      if (fileInput) fileInput.value = '';
+      
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Error al importar archivo');
+    }
+    setLoading(false);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
