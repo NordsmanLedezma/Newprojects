@@ -438,6 +438,224 @@ class BondsAPITester:
             print("❌ Authentication validation failed - no token access allowed")
             return False
 
+    def test_update_security(self):
+        """Test updating an individual security - NEW FEATURE"""
+        if not self.created_security_id:
+            print("❌ No security ID available for update test")
+            return False
+            
+        print(f"\n🔍 Testing Update Individual Security...")
+        
+        # Updated security data
+        updated_data = {
+            "isin_code": f"US{datetime.now().strftime('%H%M%S')}UPD",
+            "latinex_code": f"RPME{datetime.now().strftime('%H%M%S')}UPD",
+            "security_description": "República de Panamá - Bono Actualizado",
+            "coupon": "8.5%",
+            "issue_date": "2024-02-01",
+            "maturity_date": "2035-02-01"
+        }
+        
+        success, response = self.run_test(
+            "Update Security (PUT)",
+            "PUT",
+            f"admin/securities/{self.created_security_id}",
+            200,
+            data=updated_data,
+            token=self.admin_token
+        )
+        
+        if success:
+            print("✅ Individual security update working correctly")
+            return True, updated_data
+        else:
+            print("❌ Individual security update failed")
+            return False, {}
+
+    def test_update_security_duplicate_validation(self):
+        """Test update security with duplicate codes"""
+        if not self.created_security_id:
+            print("❌ No security ID available for duplicate validation test")
+            return False
+            
+        print(f"\n🔍 Testing Update Security Duplicate Validation...")
+        
+        # First create another security to test duplicate validation
+        timestamp = datetime.now().strftime('%H%M%S')
+        another_security_data = {
+            "isin_code": f"US{timestamp}DUP",
+            "latinex_code": f"RPME{timestamp}DUP",
+            "security_description": "República de Panamá - Bono para Duplicado",
+            "coupon": "7.5%",
+            "issue_date": "2024-03-01",
+            "maturity_date": "2033-03-01"
+        }
+        
+        success, response = self.run_test(
+            "Create Another Security for Duplicate Test",
+            "POST",
+            "admin/securities",
+            200,
+            data=another_security_data,
+            token=self.admin_token
+        )
+        
+        if not success:
+            print("❌ Could not create second security for duplicate test")
+            return False
+            
+        another_security_id = response.get('id')
+        
+        # Now try to update the first security with the same codes as the second
+        duplicate_data = {
+            "isin_code": another_security_data["isin_code"],
+            "latinex_code": another_security_data["latinex_code"],
+            "security_description": "Trying to duplicate codes",
+            "coupon": "6.0%",
+            "issue_date": "2024-04-01",
+            "maturity_date": "2032-04-01"
+        }
+        
+        success, response = self.run_test(
+            "Update Security with Duplicate Codes (Should Fail)",
+            "PUT",
+            f"admin/securities/{self.created_security_id}",
+            400,  # Should return 400 for duplicate
+            data=duplicate_data,
+            token=self.admin_token
+        )
+        
+        if success:
+            print("✅ Duplicate validation working correctly")
+            return True
+        else:
+            print("❌ Duplicate validation failed - should have rejected duplicate codes")
+            return False
+
+    def test_delete_security(self):
+        """Test deleting an individual security - NEW FEATURE"""
+        if not self.created_security_id:
+            print("❌ No security ID available for delete test")
+            return False
+            
+        print(f"\n🔍 Testing Delete Individual Security...")
+        
+        success, response = self.run_test(
+            "Delete Security (DELETE)",
+            "DELETE",
+            f"admin/securities/{self.created_security_id}",
+            200,
+            token=self.admin_token
+        )
+        
+        if success:
+            print("✅ Individual security deletion working correctly")
+            # Verify the security is actually deleted
+            success_verify, response_verify = self.run_test(
+                "Verify Security Deleted (Should Return 404)",
+                "GET",
+                f"securities/search/NONEXISTENT",
+                404,
+                token=self.admin_token
+            )
+            return True
+        else:
+            print("❌ Individual security deletion failed")
+            return False
+
+    def test_delete_nonexistent_security(self):
+        """Test deleting a non-existent security"""
+        print(f"\n🔍 Testing Delete Non-existent Security...")
+        
+        fake_id = "nonexistent-security-id"
+        success, response = self.run_test(
+            "Delete Non-existent Security (Should Return 404)",
+            "DELETE",
+            f"admin/securities/{fake_id}",
+            404,
+            token=self.admin_token
+        )
+        
+        if success:
+            print("✅ Non-existent security deletion validation working correctly")
+            return True
+        else:
+            print("❌ Non-existent security deletion validation failed")
+            return False
+
+    def test_update_nonexistent_security(self):
+        """Test updating a non-existent security"""
+        print(f"\n🔍 Testing Update Non-existent Security...")
+        
+        fake_id = "nonexistent-security-id"
+        update_data = {
+            "isin_code": "US123456789",
+            "latinex_code": "RPME123456789",
+            "security_description": "Non-existent security",
+            "coupon": "5.0%",
+            "issue_date": "2024-01-01",
+            "maturity_date": "2030-01-01"
+        }
+        
+        success, response = self.run_test(
+            "Update Non-existent Security (Should Return 404)",
+            "PUT",
+            f"admin/securities/{fake_id}",
+            404,
+            data=update_data,
+            token=self.admin_token
+        )
+        
+        if success:
+            print("✅ Non-existent security update validation working correctly")
+            return True
+        else:
+            print("❌ Non-existent security update validation failed")
+            return False
+
+    def test_security_permissions(self):
+        """Test that only admins can edit/delete securities"""
+        if not self.created_security_id:
+            print("❌ No security ID available for permission test")
+            return False
+            
+        print(f"\n🔍 Testing Security Edit/Delete Permissions...")
+        
+        # Test user trying to update security (should fail)
+        update_data = {
+            "isin_code": "US999999999",
+            "latinex_code": "RPME999999999",
+            "security_description": "Unauthorized update attempt",
+            "coupon": "1.0%",
+            "issue_date": "2024-01-01",
+            "maturity_date": "2025-01-01"
+        }
+        
+        success_update, response_update = self.run_test(
+            "Update Security (User Token - Should Fail)",
+            "PUT",
+            f"admin/securities/{self.created_security_id}",
+            403,  # Should return 403 Forbidden
+            data=update_data,
+            token=self.user_token
+        )
+        
+        # Test user trying to delete security (should fail)
+        success_delete, response_delete = self.run_test(
+            "Delete Security (User Token - Should Fail)",
+            "DELETE",
+            f"admin/securities/{self.created_security_id}",
+            403,  # Should return 403 Forbidden
+            token=self.user_token
+        )
+        
+        if success_update and success_delete:
+            print("✅ Security edit/delete permission validation working correctly")
+            return True
+        else:
+            print("❌ Security edit/delete permission validation failed")
+            return False
+
 def main():
     print("🚀 Starting Panamanian Bonds API Testing...")
     print("=" * 60)
