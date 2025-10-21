@@ -282,6 +282,59 @@ async def get_securities(token_payload: dict = Depends(verify_token)):
     securities = await db.securities.find().to_list(1000)
     return [Security(**security) for security in securities]
 
+@api_router.put("/admin/securities/{security_id}", response_model=Security)
+async def update_security(security_id: str, security_data: SecurityCreate, token_payload: dict = Depends(verify_token)):
+    if token_payload.get("user_type") != "admin":
+        raise HTTPException(status_code=403, detail="Acceso denegado")
+    
+    # Check if security exists
+    existing = await db.securities.find_one({"id": security_id})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Valor no encontrado")
+    
+    # Check for duplicates (excluding current security)
+    query = {"id": {"$ne": security_id}}
+    if security_data.isin_code:
+        query["$or"] = [{"isin_code": security_data.isin_code}]
+    if security_data.latinex_code:
+        if "$or" in query:
+            query["$or"].append({"latinex_code": security_data.latinex_code})
+        else:
+            query["$or"] = [{"latinex_code": security_data.latinex_code}]
+    
+    if "$or" in query:
+        duplicate = await db.securities.find_one(query)
+        if duplicate:
+            raise HTTPException(status_code=400, detail="Ya existe otro valor con ese código ISIN o Latinex")
+    
+    # Update the security
+    update_data = security_data.dict()
+    update_data["updated_at"] = datetime.now(timezone.utc).isoformat()
+    
+    await db.securities.update_one(
+        {"id": security_id}, 
+        {"$set": update_data}
+    )
+    
+    # Return updated security
+    updated_security = await db.securities.find_one({"id": security_id})
+    return Security(**updated_security)
+
+@api_router.delete("/admin/securities/{security_id}")
+async def delete_security(security_id: str, token_payload: dict = Depends(verify_token)):
+    if token_payload.get("user_type") != "admin":
+        raise HTTPException(status_code=403, detail="Acceso denegado")
+    
+    # Check if security exists
+    existing = await db.securities.find_one({"id": security_id})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Valor no encontrado")
+    
+    # Delete the security
+    await db.securities.delete_one({"id": security_id})
+    
+    return {"message": "Valor eliminado exitosamente"}
+
 @api_router.delete("/admin/securities/clear-all")
 async def clear_all_securities(token_payload: dict = Depends(verify_token)):
     if token_payload.get("user_type") != "admin":
