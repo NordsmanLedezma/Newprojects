@@ -162,6 +162,11 @@ function AdminDashboard() {
   const [newAdmin, setNewAdmin] = useState({ username: '', password: '', email: '' });
   const [admins, setAdmins] = useState([]);
   const [importFile, setImportFile] = useState(null);
+  const [editingSecurity, setEditingSecurity] = useState(null);
+  const [editSecurityData, setEditSecurityData] = useState({
+    isin_code: '', latinex_code: '', security_description: '', 
+    coupon: '', issue_date: '', maturity_date: ''
+  });
   const [loading, setLoading] = useState(false);
   const { logout } = useAuth();
 
