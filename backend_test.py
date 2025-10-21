@@ -701,7 +701,20 @@ def main():
     tester.test_excel_import()
     tester.test_invalid_excel_import()
 
-    # Test Clear All Securities functionality (MAIN FEATURE)
+    # Test Individual Security Edit/Delete functionality (NEW FEATURES)
+    print("\n" + "🔥" * 30)
+    print("🎯 TESTING INDIVIDUAL SECURITY EDIT/DELETE FUNCTIONALITY")
+    print("🔥" * 30)
+    
+    # Test individual security operations
+    tester.test_update_security()
+    tester.test_update_security_duplicate_validation()
+    tester.test_update_nonexistent_security()
+    tester.test_security_permissions()
+    tester.test_delete_nonexistent_security()
+    tester.test_delete_security()  # This should be last as it deletes the security
+    
+    # Test Clear All Securities functionality
     print("\n" + "🔥" * 30)
     print("🎯 TESTING CLEAR ALL SECURITIES FUNCTIONALITY")
     print("🔥" * 30)
