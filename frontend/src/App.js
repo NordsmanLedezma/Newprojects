@@ -369,6 +369,61 @@ function AdminDashboard() {
     setLoading(false);
   };
 
+  const startEditSecurity = (security) => {
+    setEditingSecurity(security.id);
+    setEditSecurityData({
+      isin_code: security.isin_code || '',
+      latinex_code: security.latinex_code || '',
+      security_description: security.security_description || '',
+      coupon: security.coupon || '',
+      issue_date: security.issue_date || '',
+      maturity_date: security.maturity_date || ''
+    });
+  };
+
+  const cancelEditSecurity = () => {
+    setEditingSecurity(null);
+    setEditSecurityData({
+      isin_code: '', latinex_code: '', security_description: '', 
+      coupon: '', issue_date: '', maturity_date: ''
+    });
+  };
+
+  const saveEditSecurity = async (securityId) => {
+    setLoading(true);
+    try {
+      await axios.put(`${API}/admin/securities/${securityId}`, editSecurityData);
+      setEditingSecurity(null);
+      setEditSecurityData({
+        isin_code: '', latinex_code: '', security_description: '', 
+        coupon: '', issue_date: '', maturity_date: ''
+      });
+      loadSecurities();
+      toast.success('Valor actualizado exitosamente');
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Error al actualizar valor');
+    }
+    setLoading(false);
+  };
+
+  const deleteSecurity = async (securityId, description) => {
+    const confirmed = window.confirm(
+      `¿Está seguro que desea eliminar el valor?\n\n"${description}"\n\nEsta acción no se puede deshacer.`
+    );
+    
+    if (!confirmed) return;
+
+    try {
+      setLoading(true);
+      await axios.delete(`${API}/admin/securities/${securityId}`);
+      loadSecurities();
+      toast.success('Valor eliminado exitosamente');
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Error al eliminar valor');
+    }
+    setLoading(false);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
