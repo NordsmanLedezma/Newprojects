@@ -733,17 +733,129 @@ function AdminDashboard() {
                       <TableHead>Latinex</TableHead>
                       <TableHead>Descripción</TableHead>
                       <TableHead>Cupón</TableHead>
+                      <TableHead>Emisión</TableHead>
                       <TableHead>Vencimiento</TableHead>
+                      <TableHead className="w-32">Acciones</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {securities.map((security) => (
                       <TableRow key={security.id}>
-                        <TableCell className="font-mono text-sm">{security.isin_code || '-'}</TableCell>
-                        <TableCell className="font-mono text-sm">{security.latinex_code || '-'}</TableCell>
-                        <TableCell>{security.security_description}</TableCell>
-                        <TableCell className="font-semibold">{security.coupon}</TableCell>
-                        <TableCell>{security.maturity_date}</TableCell>
+                        {editingSecurity === security.id ? (
+                          // Edit mode
+                          <>
+                            <TableCell>
+                              <Input
+                                value={editSecurityData.isin_code}
+                                onChange={(e) => setEditSecurityData({ ...editSecurityData, isin_code: e.target.value })}
+                                placeholder="Código ISIN"
+                                className="font-mono text-sm"
+                                data-testid={`edit-isin-${security.id}`}
+                              />
+                            </TableCell>
+                            <TableCell>
+                              <Input
+                                value={editSecurityData.latinex_code}
+                                onChange={(e) => setEditSecurityData({ ...editSecurityData, latinex_code: e.target.value })}
+                                placeholder="Código Latinex"
+                                className="font-mono text-sm"
+                                data-testid={`edit-latinex-${security.id}`}
+                              />
+                            </TableCell>
+                            <TableCell>
+                              <Input
+                                value={editSecurityData.security_description}
+                                onChange={(e) => setEditSecurityData({ ...editSecurityData, security_description: e.target.value })}
+                                placeholder="Descripción del valor"
+                                required
+                                data-testid={`edit-description-${security.id}`}
+                              />
+                            </TableCell>
+                            <TableCell>
+                              <Input
+                                value={editSecurityData.coupon}
+                                onChange={(e) => setEditSecurityData({ ...editSecurityData, coupon: e.target.value })}
+                                placeholder="Cupón"
+                                required
+                                data-testid={`edit-coupon-${security.id}`}
+                              />
+                            </TableCell>
+                            <TableCell>
+                              <Input
+                                type="date"
+                                value={editSecurityData.issue_date}
+                                onChange={(e) => setEditSecurityData({ ...editSecurityData, issue_date: e.target.value })}
+                                required
+                                data-testid={`edit-issue-date-${security.id}`}
+                              />
+                            </TableCell>
+                            <TableCell>
+                              <Input
+                                type="date"
+                                value={editSecurityData.maturity_date}
+                                onChange={(e) => setEditSecurityData({ ...editSecurityData, maturity_date: e.target.value })}
+                                required
+                                data-testid={`edit-maturity-date-${security.id}`}
+                              />
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex space-x-1">
+                                <Button
+                                  size="sm"
+                                  onClick={() => saveEditSecurity(security.id)}
+                                  disabled={loading}
+                                  className="bg-green-600 hover:bg-green-700"
+                                  data-testid={`save-security-${security.id}`}
+                                >
+                                  ✓
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={cancelEditSecurity}
+                                  disabled={loading}
+                                  data-testid={`cancel-edit-${security.id}`}
+                                >
+                                  ✗
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </>
+                        ) : (
+                          // View mode
+                          <>
+                            <TableCell className="font-mono text-sm">{security.isin_code || '-'}</TableCell>
+                            <TableCell className="font-mono text-sm">{security.latinex_code || '-'}</TableCell>
+                            <TableCell className="max-w-xs truncate" title={security.security_description}>
+                              {security.security_description}
+                            </TableCell>
+                            <TableCell className="font-semibold">{security.coupon}</TableCell>
+                            <TableCell className="text-sm">{security.issue_date}</TableCell>
+                            <TableCell className="text-sm">{security.maturity_date}</TableCell>
+                            <TableCell>
+                              <div className="flex space-x-1">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => startEditSecurity(security)}
+                                  disabled={loading || editingSecurity !== null}
+                                  data-testid={`edit-security-${security.id}`}
+                                >
+                                  ✏️
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="destructive"
+                                  onClick={() => deleteSecurity(security.id, security.security_description)}
+                                  disabled={loading || editingSecurity !== null}
+                                  data-testid={`delete-security-${security.id}`}
+                                >
+                                  🗑️
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </>
+                        )}
                       </TableRow>
                     ))}
                   </TableBody>
