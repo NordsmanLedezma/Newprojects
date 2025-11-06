@@ -196,7 +196,18 @@ function AdminDashboard() {
   const loadUsers = async () => {
     try {
       const response = await axios.get(`${API}/admin/users`);
-      setUsers(response.data);
+      // Load users with holdings count
+      const usersWithHoldings = await Promise.all(
+        response.data.map(async (user) => {
+          try {
+            const holdingsResponse = await axios.get(`${API}/admin/users/${user.id}/holdings`);
+            return { ...user, holdingsCount: holdingsResponse.data.length };
+          } catch (error) {
+            return { ...user, holdingsCount: 0 };
+          }
+        })
+      );
+      setUsers(usersWithHoldings);
     } catch (error) {
       toast.error('Error al cargar usuarios');
     }
