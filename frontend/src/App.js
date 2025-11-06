@@ -246,7 +246,7 @@ function AdminDashboard() {
     try {
       await axios.post(`${API}/admin/users`, newUser);
       setNewUser({ username: '', password: '', email: '', brokerage_name: '' });
-      loadUsers();
+      await loadUsers(); // Reload with holdings count
       toast.success('Usuario creado exitosamente');
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Error al crear usuario');
