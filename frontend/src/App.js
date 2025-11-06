@@ -172,6 +172,17 @@ function AdminDashboard() {
     username: '', email: '', brokerage_name: '', is_active: true, password: ''
   });
   const [showPasswordDialog, setShowPasswordDialog] = useState(null);
+  const [showHoldingsDialog, setShowHoldingsDialog] = useState(null);
+  const [userHoldings, setUserHoldings] = useState([]);
+  const [editingHolding, setEditingHolding] = useState(null);
+  const [newHoldingForUser, setNewHoldingForUser] = useState({
+    filing_date: '', isin_or_latinex_code: '', holder_name: '', holder_id: '',
+    legal_representative: '', amount_held: '', address: '', phone: '', email: ''
+  });
+  const [editHoldingData, setEditHoldingData] = useState({
+    filing_date: '', isin_or_latinex_code: '', holder_name: '', holder_id: '',
+    legal_representative: '', amount_held: '', address: '', phone: '', email: ''
+  });
   const [loading, setLoading] = useState(false);
   const { logout } = useAuth();
 
