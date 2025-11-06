@@ -1781,6 +1781,7 @@ function AdminDashboard() {
             <Card>
               <CardHeader>
                 <CardTitle>Administradores Registrados</CardTitle>
+                <CardDescription>{admins.length} administradores en el sistema</CardDescription>
               </CardHeader>
               <CardContent>
                 <Table>
@@ -1789,18 +1790,108 @@ function AdminDashboard() {
                       <TableHead>Usuario</TableHead>
                       <TableHead>Email</TableHead>
                       <TableHead>Fecha de Creación</TableHead>
+                      <TableHead className="w-40">Acciones</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {admins.map((admin) => (
                       <TableRow key={admin.id}>
-                        <TableCell className="font-medium">{admin.username}</TableCell>
-                        <TableCell>{admin.email}</TableCell>
-                        <TableCell>{new Date(admin.created_at).toLocaleDateString('es-ES')}</TableCell>
+                        {editingAdmin === admin.id ? (
+                          // Edit mode
+                          <>
+                            <TableCell>
+                              <Input
+                                value={editAdminData.username}
+                                onChange={(e) => setEditAdminData({ ...editAdminData, username: e.target.value })}
+                                placeholder="Nombre de usuario"
+                                required
+                                data-testid={`edit-admin-username-${admin.id}`}
+                              />
+                            </TableCell>
+                            <TableCell>
+                              <Input
+                                type="email"
+                                value={editAdminData.email}
+                                onChange={(e) => setEditAdminData({ ...editAdminData, email: e.target.value })}
+                                placeholder="Email"
+                                required
+                                data-testid={`edit-admin-email-${admin.id}`}
+                              />
+                            </TableCell>
+                            <TableCell className="text-sm text-gray-500">
+                              {new Date(admin.created_at).toLocaleDateString('es-ES')}
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex space-x-1">
+                                <Button
+                                  size="sm"
+                                  onClick={() => saveEditAdmin(admin.id)}
+                                  disabled={loading}
+                                  className="bg-green-600 hover:bg-green-700"
+                                  data-testid={`save-admin-${admin.id}`}
+                                >
+                                  ✓
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={cancelEditAdmin}
+                                  disabled={loading}
+                                  data-testid={`cancel-edit-admin-${admin.id}`}
+                                >
+                                  ✗
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </>
+                        ) : (
+                          // View mode
+                          <>
+                            <TableCell className="font-medium">{admin.username}</TableCell>
+                            <TableCell>{admin.email}</TableCell>
+                            <TableCell className="text-sm text-gray-500">
+                              {new Date(admin.created_at).toLocaleDateString('es-ES')}
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex space-x-1">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => startEditAdmin(admin)}
+                                  disabled={loading || editingAdmin !== null}
+                                  data-testid={`edit-admin-${admin.id}`}
+                                  title="Editar administrador"
+                                >
+                                  ✏️
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => setShowAdminPasswordDialog({ adminId: admin.id, username: admin.username })}
+                                  disabled={loading || editingAdmin !== null}
+                                  className="bg-blue-50 hover:bg-blue-100"
+                                  data-testid={`change-admin-password-${admin.id}`}
+                                  title="Cambiar contraseña"
+                                >
+                                  🔑
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </>
+                        )}
                       </TableRow>
                     ))}
                   </TableBody>
                 </Table>
+                
+                {/* Admin Password Change Dialog */}
+                {showAdminPasswordDialog && (
+                  <AdminPasswordChangeDialog
+                    adminId={showAdminPasswordDialog.adminId}
+                    username={showAdminPasswordDialog.username}
+                    onClose={() => setShowAdminPasswordDialog(null)}
+                  />
+                )}
               </CardContent>
             </Card>
           </TabsContent>
