@@ -1282,6 +1282,15 @@ function AdminDashboard() {
                     onClose={() => setShowPasswordDialog(null)}
                   />
                 )}
+                
+                {/* Holdings Management Dialog */}
+                {showHoldingsDialog && (
+                  <HoldingsManagementDialog
+                    user={showHoldingsDialog}
+                    holdings={userHoldings}
+                    onClose={closeHoldingsDialog}
+                  />
+                )}
               </CardContent>
             </Card>
           </TabsContent>
