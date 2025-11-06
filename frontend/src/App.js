@@ -1235,7 +1235,7 @@ function AdminDashboard() {
                                 className="bg-blue-50 hover:bg-blue-100 border-blue-200"
                                 data-testid={`view-holdings-${user.id}`}
                               >
-                                Ver tenencias
+                                {user.holdingsCount || 0} tenencias
                               </Button>
                             </TableCell>
                             <TableCell>
