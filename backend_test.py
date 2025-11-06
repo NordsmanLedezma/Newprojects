@@ -1234,6 +1234,21 @@ def main():
     tester.test_excel_import()
     tester.test_invalid_excel_import()
 
+    # Test Holdings Management functionality (NEW FEATURES)
+    print("\n" + "🔥" * 30)
+    print("🎯 TESTING HOLDINGS MANAGEMENT FUNCTIONALITY")
+    print("🔥" * 30)
+    
+    # Test holdings management operations
+    tester.test_get_user_holdings_by_admin()
+    holding_created, holding_data = tester.test_create_holding_for_user_by_admin()
+    if holding_created:
+        tester.test_update_holding_by_admin()
+        tester.test_delete_holding_by_admin()
+    tester.test_holdings_management_permissions()
+    tester.test_holdings_nonexistent_user()
+    tester.test_holdings_nonexistent_holding()
+
     # Test User Management functionality (NEW FEATURES)
     print("\n" + "🔥" * 30)
     print("🎯 TESTING USER MANAGEMENT FUNCTIONALITY")
