@@ -1169,6 +1169,9 @@ function AdminDashboard() {
                               </select>
                             </TableCell>
                             <TableCell>
+                              <span className="text-sm text-gray-500">-</span>
+                            </TableCell>
+                            <TableCell>
                               <div className="flex space-x-1">
                                 <Button
                                   size="sm"
