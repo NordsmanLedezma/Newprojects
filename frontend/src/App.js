@@ -1203,6 +1203,11 @@ function AdminDashboard() {
                               </Badge>
                             </TableCell>
                             <TableCell>
+                              <Badge variant="outline" className="bg-blue-50">
+                                Ver tenencias
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
                               <div className="flex flex-wrap gap-1">
                                 <Button
                                   size="sm"
