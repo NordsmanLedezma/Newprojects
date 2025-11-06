@@ -1189,6 +1189,315 @@ class BondsAPITester:
             print("❌ Non-existent holding validation failed")
             return False
 
+    # ===== ADMIN MANAGEMENT TESTS =====
+    def test_create_admin(self):
+        """Test creating a new admin - ADMIN MANAGEMENT FEATURE"""
+        print(f"\n🔍 Testing Create Admin...")
+        
+        timestamp = datetime.now().strftime('%H%M%S')
+        admin_data = {
+            "username": f"testadmin_{timestamp}",
+            "password": "adminpass123",
+            "email": f"testadmin_{timestamp}@example.com"
+        }
+        
+        success, response = self.run_test(
+            "Create Admin",
+            "POST",
+            "admin/create-admin",
+            200,
+            data=admin_data,
+            token=self.admin_token
+        )
+        
+        if success and 'id' in response:
+            self.created_admin_id = response['id']
+            print("✅ Admin creation working correctly")
+            return True, admin_data
+        else:
+            print("❌ Admin creation failed")
+            return False, {}
+
+    def test_get_admins(self):
+        """Test getting all admins - ADMIN MANAGEMENT FEATURE"""
+        success, response = self.run_test(
+            "Get Admins",
+            "GET",
+            "admin/admins",
+            200,
+            token=self.admin_token
+        )
+        
+        if success and isinstance(response, list):
+            print(f"✅ Get admins working correctly - found {len(response)} admins")
+            return True
+        else:
+            print("❌ Get admins failed")
+            return False
+
+    def test_update_admin(self):
+        """Test updating admin information - ADMIN MANAGEMENT FEATURE"""
+        if not hasattr(self, 'created_admin_id') or not self.created_admin_id:
+            print("❌ No admin ID available for update test")
+            return False
+            
+        print(f"\n🔍 Testing Update Admin Information...")
+        
+        timestamp = datetime.now().strftime('%H%M%S')
+        updated_data = {
+            "username": f"updated_admin_{timestamp}",
+            "email": f"updated_admin_{timestamp}@example.com"
+        }
+        
+        success, response = self.run_test(
+            "Update Admin (PUT)",
+            "PUT",
+            f"admin/admins/{self.created_admin_id}",
+            200,
+            data=updated_data,
+            token=self.admin_token
+        )
+        
+        if success:
+            print("✅ Admin update working correctly")
+            return True, updated_data
+        else:
+            print("❌ Admin update failed")
+            return False, {}
+
+    def test_update_admin_duplicate_validation(self):
+        """Test update admin with duplicate username - ADMIN MANAGEMENT FEATURE"""
+        if not hasattr(self, 'created_admin_id') or not self.created_admin_id:
+            print("❌ No admin ID available for duplicate validation test")
+            return False
+            
+        print(f"\n🔍 Testing Update Admin Duplicate Validation...")
+        
+        # Try to update with existing admin username
+        duplicate_data = {
+            "username": "admin",  # This should already exist
+            "email": "duplicate@example.com"
+        }
+        
+        success, response = self.run_test(
+            "Update Admin with Duplicate Username (Should Fail)",
+            "PUT",
+            f"admin/admins/{self.created_admin_id}",
+            400,  # Should return 400 for duplicate
+            data=duplicate_data,
+            token=self.admin_token
+        )
+        
+        if success:
+            print("✅ Admin duplicate validation working correctly")
+            return True
+        else:
+            print("❌ Admin duplicate validation failed - should have rejected duplicate username")
+            return False
+
+    def test_update_admin_validation(self):
+        """Test admin update validation (required fields) - ADMIN MANAGEMENT FEATURE"""
+        if not hasattr(self, 'created_admin_id') or not self.created_admin_id:
+            print("❌ No admin ID available for validation test")
+            return False
+            
+        print(f"\n🔍 Testing Admin Update Validation...")
+        
+        # Test with missing required fields
+        invalid_data = {
+            "username": "",  # Empty username
+            "email": ""      # Empty email
+        }
+        
+        success, response = self.run_test(
+            "Update Admin with Invalid Data (Should Fail)",
+            "PUT",
+            f"admin/admins/{self.created_admin_id}",
+            400,  # Should return 400 for invalid data
+            data=invalid_data,
+            token=self.admin_token
+        )
+        
+        if success:
+            print("✅ Admin validation working correctly")
+            return True
+        else:
+            print("❌ Admin validation failed - should have rejected empty fields")
+            return False
+
+    def test_change_admin_password(self):
+        """Test changing admin password - ADMIN MANAGEMENT FEATURE"""
+        if not hasattr(self, 'created_admin_id') or not self.created_admin_id:
+            print("❌ No admin ID available for password change test")
+            return False
+            
+        print(f"\n🔍 Testing Change Admin Password...")
+        
+        password_data = {
+            "new_password": "newadminpass456"
+        }
+        
+        success, response = self.run_test(
+            "Change Admin Password (PUT)",
+            "PUT",
+            f"admin/admins/{self.created_admin_id}/password",
+            200,
+            data=password_data,
+            token=self.admin_token
+        )
+        
+        if success:
+            print("✅ Admin password change working correctly")
+            return True
+        else:
+            print("❌ Admin password change failed")
+            return False
+
+    def test_change_admin_password_validation(self):
+        """Test admin password change validation (short password) - ADMIN MANAGEMENT FEATURE"""
+        if not hasattr(self, 'created_admin_id') or not self.created_admin_id:
+            print("❌ No admin ID available for password validation test")
+            return False
+            
+        print(f"\n🔍 Testing Admin Password Change Validation...")
+        
+        # Test with password too short
+        invalid_password_data = {
+            "new_password": "123"  # Less than 6 characters
+        }
+        
+        success, response = self.run_test(
+            "Change Admin Password (Too Short - Should Fail)",
+            "PUT",
+            f"admin/admins/{self.created_admin_id}/password",
+            400,  # Should return 400 for invalid password
+            data=invalid_password_data,
+            token=self.admin_token
+        )
+        
+        if success:
+            print("✅ Admin password validation working correctly")
+            return True
+        else:
+            print("❌ Admin password validation failed - should have rejected short password")
+            return False
+
+    def test_update_nonexistent_admin(self):
+        """Test updating a non-existent admin - ADMIN MANAGEMENT FEATURE"""
+        print(f"\n🔍 Testing Update Non-existent Admin...")
+        
+        fake_id = "nonexistent-admin-id"
+        update_data = {
+            "username": "nonexistent",
+            "email": "nonexistent@example.com"
+        }
+        
+        success, response = self.run_test(
+            "Update Non-existent Admin (Should Return 404)",
+            "PUT",
+            f"admin/admins/{fake_id}",
+            404,
+            data=update_data,
+            token=self.admin_token
+        )
+        
+        if success:
+            print("✅ Non-existent admin update validation working correctly")
+            return True
+        else:
+            print("❌ Non-existent admin update validation failed")
+            return False
+
+    def test_change_nonexistent_admin_password(self):
+        """Test changing password for non-existent admin - ADMIN MANAGEMENT FEATURE"""
+        print(f"\n🔍 Testing Change Password for Non-existent Admin...")
+        
+        fake_id = "nonexistent-admin-id"
+        password_data = {
+            "new_password": "somepassword123"
+        }
+        
+        success, response = self.run_test(
+            "Change Password for Non-existent Admin (Should Return 404)",
+            "PUT",
+            f"admin/admins/{fake_id}/password",
+            404,
+            data=password_data,
+            token=self.admin_token
+        )
+        
+        if success:
+            print("✅ Non-existent admin password change validation working correctly")
+            return True
+        else:
+            print("❌ Non-existent admin password change validation failed")
+            return False
+
+    def test_admin_management_permissions(self):
+        """Test that only admins can manage other admins - ADMIN MANAGEMENT FEATURE"""
+        if not hasattr(self, 'created_admin_id') or not self.created_admin_id:
+            print("❌ No admin ID available for permission test")
+            return False
+            
+        print(f"\n🔍 Testing Admin Management Permissions...")
+        
+        # Test user trying to update admin (should fail)
+        update_data = {
+            "username": "unauthorized_admin_update",
+            "email": "unauthorized@example.com"
+        }
+        
+        success_update, response_update = self.run_test(
+            "Update Admin (User Token - Should Fail)",
+            "PUT",
+            f"admin/admins/{self.created_admin_id}",
+            403,  # Should return 403 Forbidden
+            data=update_data,
+            token=self.user_token
+        )
+        
+        # Test user trying to change admin password (should fail)
+        password_data = {"new_password": "unauthorized123"}
+        success_password, response_password = self.run_test(
+            "Change Admin Password (User Token - Should Fail)",
+            "PUT",
+            f"admin/admins/{self.created_admin_id}/password",
+            403,  # Should return 403 Forbidden
+            data=password_data,
+            token=self.user_token
+        )
+        
+        # Test user trying to get admins list (should fail)
+        success_get, response_get = self.run_test(
+            "Get Admins (User Token - Should Fail)",
+            "GET",
+            "admin/admins",
+            403,  # Should return 403 Forbidden
+            token=self.user_token
+        )
+        
+        # Test user trying to create admin (should fail)
+        admin_data = {
+            "username": "unauthorized_admin",
+            "password": "password123",
+            "email": "unauthorized@example.com"
+        }
+        success_create, response_create = self.run_test(
+            "Create Admin (User Token - Should Fail)",
+            "POST",
+            "admin/create-admin",
+            403,  # Should return 403 Forbidden
+            data=admin_data,
+            token=self.user_token
+        )
+        
+        if success_update and success_password and success_get and success_create:
+            print("✅ Admin management permission validation working correctly")
+            return True
+        else:
+            print("❌ Admin management permission validation failed")
+            return False
+
 def main():
     print("🚀 Starting Panamanian Bonds API Testing...")
     print("=" * 60)
