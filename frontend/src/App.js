@@ -1094,8 +1094,9 @@ function AdminDashboard() {
                   <div className="md:col-span-2 space-y-4">
                     <Alert className="bg-blue-50 border-blue-200">
                       <AlertDescription>
-                        💡 <strong>Gestión Completa de Usuarios:</strong> Como administrador, puede crear usuarios, 
-                        editar sus datos (✏️), cambiar contraseñas (🔑), activar/desactivar (⏸️/▶️) y eliminar usuarios (🗑️).
+                        💡 <strong>Gestión Completa de Usuarios y Tenencias:</strong> Como administrador, puede crear usuarios, 
+                        editar sus datos (✏️), cambiar contraseñas (🔑), gestionar sus tenencias (📋), 
+                        activar/desactivar (⏸️/▶️) y eliminar usuarios (🗑️).
                       </AlertDescription>
                     </Alert>
                     <Button type="submit" disabled={loading} data-testid="create-user-button">
