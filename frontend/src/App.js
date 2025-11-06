@@ -167,6 +167,11 @@ function AdminDashboard() {
     isin_code: '', latinex_code: '', security_description: '', 
     coupon: '', issue_date: '', maturity_date: ''
   });
+  const [editingUser, setEditingUser] = useState(null);
+  const [editUserData, setEditUserData] = useState({
+    username: '', email: '', brokerage_name: '', is_active: true, password: ''
+  });
+  const [showPasswordDialog, setShowPasswordDialog] = useState(null);
   const [loading, setLoading] = useState(false);
   const { logout } = useAuth();
 
