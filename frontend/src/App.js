@@ -573,6 +573,386 @@ function AdminDashboard() {
     );
   };
 
+  // Holdings management functions
+  const loadUserHoldings = async (userId) => {
+    try {
+      const response = await axios.get(`${API}/admin/users/${userId}/holdings`);
+      setUserHoldings(response.data);
+    } catch (error) {
+      toast.error('Error al cargar tenencias del usuario');
+      setUserHoldings([]);
+    }
+  };
+
+  const showUserHoldings = async (user) => {
+    setShowHoldingsDialog(user);
+    await loadUserHoldings(user.id);
+  };
+
+  const closeHoldingsDialog = () => {
+    setShowHoldingsDialog(null);
+    setUserHoldings([]);
+    setEditingHolding(null);
+    setNewHoldingForUser({
+      filing_date: '', isin_or_latinex_code: '', holder_name: '', holder_id: '',
+      legal_representative: '', amount_held: '', address: '', phone: '', email: ''
+    });
+    setEditHoldingData({
+      filing_date: '', isin_or_latinex_code: '', holder_name: '', holder_id: '',
+      legal_representative: '', amount_held: '', address: '', phone: '', email: ''
+    });
+  };
+
+  const createHoldingForUser = async (userId) => {
+    setLoading(true);
+    try {
+      await axios.post(`${API}/admin/users/${userId}/holdings`, {
+        ...newHoldingForUser,
+        amount_held: parseFloat(newHoldingForUser.amount_held)
+      });
+      setNewHoldingForUser({
+        filing_date: '', isin_or_latinex_code: '', holder_name: '', holder_id: '',
+        legal_representative: '', amount_held: '', address: '', phone: '', email: ''
+      });
+      await loadUserHoldings(userId);
+      toast.success('Tenencia creada exitosamente');
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Error al crear tenencia');
+    }
+    setLoading(false);
+  };
+
+  const startEditHolding = (holding) => {
+    setEditingHolding(holding.id);
+    setEditHoldingData({
+      filing_date: holding.filing_date || '',
+      isin_or_latinex_code: holding.isin_or_latinex_code || '',
+      holder_name: holding.holder_name || '',
+      holder_id: holding.holder_id || '',
+      legal_representative: holding.legal_representative || '',
+      amount_held: holding.amount_held || '',
+      address: holding.address || '',
+      phone: holding.phone || '',
+      email: holding.email || ''
+    });
+  };
+
+  const cancelEditHolding = () => {
+    setEditingHolding(null);
+    setEditHoldingData({
+      filing_date: '', isin_or_latinex_code: '', holder_name: '', holder_id: '',
+      legal_representative: '', amount_held: '', address: '', phone: '', email: ''
+    });
+  };
+
+  const saveEditHolding = async (holdingId) => {
+    setLoading(true);
+    try {
+      await axios.put(`${API}/admin/holdings/${holdingId}`, {
+        ...editHoldingData,
+        amount_held: parseFloat(editHoldingData.amount_held)
+      });
+      setEditingHolding(null);
+      setEditHoldingData({
+        filing_date: '', isin_or_latinex_code: '', holder_name: '', holder_id: '',
+        legal_representative: '', amount_held: '', address: '', phone: '', email: ''
+      });
+      await loadUserHoldings(showHoldingsDialog.id);
+      toast.success('Tenencia actualizada exitosamente');
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Error al actualizar tenencia');
+    }
+    setLoading(false);
+  };
+
+  const deleteHolding = async (holdingId, holderName) => {
+    const confirmed = window.confirm(
+      `¿Está seguro que desea eliminar la tenencia?\n\nTenedor: "${holderName}"\n\nEsta acción no se puede deshacer.`
+    );
+    
+    if (!confirmed) return;
+
+    try {
+      setLoading(true);
+      await axios.delete(`${API}/admin/holdings/${holdingId}`);
+      await loadUserHoldings(showHoldingsDialog.id);
+      toast.success('Tenencia eliminada exitosamente');
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Error al eliminar tenencia');
+    }
+    setLoading(false);
+  };
+
+  const HoldingsManagementDialog = ({ user, holdings, onClose }) => {
+    const searchSecurityForHolding = async (code, isNewHolding = true) => {
+      if (!code) return;
+      try {
+        const response = await axios.get(`${API}/securities/search/${code}`);
+        toast.success(`Valor encontrado: ${response.data.security_description}`);
+      } catch (error) {
+        if (error.response?.status === 404) {
+          toast.warning('Valor no encontrado en la base de datos');
+        }
+      }
+    };
+
+    return (
+      <Dialog open={true} onOpenChange={onClose}>
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Gestionar Tenencias - {user.username}</DialogTitle>
+            <DialogDescription>
+              {user.brokerage_name} • {holdings.length} tenencias registradas
+            </DialogDescription>
+          </DialogHeader>
+          
+          {/* New Holding Form */}
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle className="text-lg">Agregar Nueva Tenencia</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Fecha de Presentación</Label>
+                  <Input
+                    type="date"
+                    value={newHoldingForUser.filing_date}
+                    onChange={(e) => setNewHoldingForUser({ ...newHoldingForUser, filing_date: e.target.value })}
+                    required
+                    data-testid="new-holding-filing-date"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Código ISIN/Latinex</Label>
+                  <Input
+                    value={newHoldingForUser.isin_or_latinex_code}
+                    onChange={(e) => {
+                      setNewHoldingForUser({ ...newHoldingForUser, isin_or_latinex_code: e.target.value });
+                      searchSecurityForHolding(e.target.value);
+                    }}
+                    placeholder="ej: US698299AK07 o RPME0937500429A"
+                    required
+                    data-testid="new-holding-isin"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Nombre del Tenedor</Label>
+                  <Input
+                    value={newHoldingForUser.holder_name}
+                    onChange={(e) => setNewHoldingForUser({ ...newHoldingForUser, holder_name: e.target.value })}
+                    required
+                    data-testid="new-holding-holder-name"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>ID del Tenedor</Label>
+                  <Input
+                    value={newHoldingForUser.holder_id}
+                    onChange={(e) => setNewHoldingForUser({ ...newHoldingForUser, holder_id: e.target.value })}
+                    placeholder="Cédula o RUC"
+                    required
+                    data-testid="new-holding-holder-id"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Representante Legal (opcional)</Label>
+                  <Input
+                    value={newHoldingForUser.legal_representative}
+                    onChange={(e) => setNewHoldingForUser({ ...newHoldingForUser, legal_representative: e.target.value })}
+                    data-testid="new-holding-legal-rep"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Cantidad Tenida</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={newHoldingForUser.amount_held}
+                    onChange={(e) => setNewHoldingForUser({ ...newHoldingForUser, amount_held: e.target.value })}
+                    required
+                    data-testid="new-holding-amount"
+                  />
+                </div>
+                <div className="md:col-span-2 space-y-2">
+                  <Label>Dirección</Label>
+                  <Textarea
+                    value={newHoldingForUser.address}
+                    onChange={(e) => setNewHoldingForUser({ ...newHoldingForUser, address: e.target.value })}
+                    required
+                    data-testid="new-holding-address"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Teléfono</Label>
+                  <Input
+                    type="tel"
+                    value={newHoldingForUser.phone}
+                    onChange={(e) => setNewHoldingForUser({ ...newHoldingForUser, phone: e.target.value })}
+                    required
+                    data-testid="new-holding-phone"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Email</Label>
+                  <Input
+                    type="email"
+                    value={newHoldingForUser.email}
+                    onChange={(e) => setNewHoldingForUser({ ...newHoldingForUser, email: e.target.value })}
+                    required
+                    data-testid="new-holding-email"
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <Button 
+                    onClick={() => createHoldingForUser(user.id)}
+                    disabled={loading}
+                    className="bg-green-600 hover:bg-green-700"
+                    data-testid="create-holding-for-user-button"
+                  >
+                    {loading ? 'Creando...' : 'Crear Tenencia'}
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Holdings Table */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Tenencias Existentes</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {holdings.length > 0 ? (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Fecha</TableHead>
+                      <TableHead>Código</TableHead>
+                      <TableHead>Tenedor</TableHead>
+                      <TableHead>Cantidad</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead className="w-32">Acciones</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {holdings.map((holding) => (
+                      <TableRow key={holding.id}>
+                        {editingHolding === holding.id ? (
+                          // Edit mode
+                          <>
+                            <TableCell>
+                              <Input
+                                type="date"
+                                value={editHoldingData.filing_date}
+                                onChange={(e) => setEditHoldingData({ ...editHoldingData, filing_date: e.target.value })}
+                                className="w-full"
+                              />
+                            </TableCell>
+                            <TableCell>
+                              <Input
+                                value={editHoldingData.isin_or_latinex_code}
+                                onChange={(e) => setEditHoldingData({ ...editHoldingData, isin_or_latinex_code: e.target.value })}
+                                className="w-full"
+                              />
+                            </TableCell>
+                            <TableCell>
+                              <Input
+                                value={editHoldingData.holder_name}
+                                onChange={(e) => setEditHoldingData({ ...editHoldingData, holder_name: e.target.value })}
+                                className="w-full"
+                              />
+                            </TableCell>
+                            <TableCell>
+                              <Input
+                                type="number"
+                                step="0.01"
+                                value={editHoldingData.amount_held}
+                                onChange={(e) => setEditHoldingData({ ...editHoldingData, amount_held: e.target.value })}
+                                className="w-full"
+                              />
+                            </TableCell>
+                            <TableCell>
+                              <Input
+                                type="email"
+                                value={editHoldingData.email}
+                                onChange={(e) => setEditHoldingData({ ...editHoldingData, email: e.target.value })}
+                                className="w-full"
+                              />
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex space-x-1">
+                                <Button
+                                  size="sm"
+                                  onClick={() => saveEditHolding(holding.id)}
+                                  disabled={loading}
+                                  className="bg-green-600 hover:bg-green-700"
+                                >
+                                  ✓
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={cancelEditHolding}
+                                  disabled={loading}
+                                >
+                                  ✗
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </>
+                        ) : (
+                          // View mode
+                          <>
+                            <TableCell className="text-sm">{holding.filing_date}</TableCell>
+                            <TableCell className="font-mono text-sm">{holding.isin_or_latinex_code}</TableCell>
+                            <TableCell>{holding.holder_name}</TableCell>
+                            <TableCell className="text-right font-semibold">{holding.amount_held?.toLocaleString()}</TableCell>
+                            <TableCell className="text-sm">{holding.email}</TableCell>
+                            <TableCell>
+                              <div className="flex space-x-1">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => startEditHolding(holding)}
+                                  disabled={loading || editingHolding !== null}
+                                >
+                                  ✏️
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="destructive"
+                                  onClick={() => deleteHolding(holding.id, holding.holder_name)}
+                                  disabled={loading || editingHolding !== null}
+                                >
+                                  🗑️
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </>
+                        )}
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              ) : (
+                <div className="text-center py-8 text-gray-500">
+                  <p>No hay tenencias registradas para este usuario</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <div className="flex justify-end space-x-2 mt-6">
+            <Button variant="outline" onClick={onClose}>
+              Cerrar
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
