@@ -207,6 +207,73 @@ async def get_admins(token_payload: dict = Depends(verify_token)):
     admins = await db.admins.find().to_list(1000)
     return [Admin(**admin) for admin in admins]
 
+@api_router.put("/admin/admins/{admin_id}", response_model=Admin)
+async def update_admin(admin_id: str, admin_data: dict, token_payload: dict = Depends(verify_token)):
+    if token_payload.get("user_type") != "admin":
+        raise HTTPException(status_code=403, detail="Acceso denegado")
+    
+    # Check if admin exists
+    existing_admin = await db.admins.find_one({"id": admin_id})
+    if not existing_admin:
+        raise HTTPException(status_code=404, detail="Administrador no encontrado")
+    
+    # Validate required fields
+    if not admin_data.get("email") or not admin_data.get("username"):
+        raise HTTPException(status_code=400, detail="Username y email son requeridos")
+    
+    # Check for duplicate username (excluding current admin)
+    if "username" in admin_data:
+        duplicate = await db.admins.find_one({"username": admin_data["username"], "id": {"$ne": admin_id}})
+        if duplicate:
+            raise HTTPException(status_code=400, detail="Ya existe otro administrador con ese nombre de usuario")
+    
+    # Prepare update data
+    update_data = {
+        "username": admin_data["username"],
+        "email": admin_data["email"],
+        "updated_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    # Update password if provided
+    if admin_data.get("password"):
+        if len(admin_data["password"]) < 6:
+            raise HTTPException(status_code=400, detail="La contraseña debe tener al menos 6 caracteres")
+        update_data["hashed_password"] = get_password_hash(admin_data["password"])
+    
+    # Update admin
+    await db.admins.update_one({"id": admin_id}, {"$set": update_data})
+    
+    # Return updated admin
+    updated_admin = await db.admins.find_one({"id": admin_id})
+    return Admin(**updated_admin)
+
+@api_router.put("/admin/admins/{admin_id}/password")
+async def update_admin_password(admin_id: str, password_data: dict, token_payload: dict = Depends(verify_token)):
+    if token_payload.get("user_type") != "admin":
+        raise HTTPException(status_code=403, detail="Acceso denegado")
+    
+    # Validate password data
+    new_password = password_data.get("new_password")
+    if not new_password or len(new_password) < 6:
+        raise HTTPException(status_code=400, detail="La contraseña debe tener al menos 6 caracteres")
+    
+    # Check if admin exists
+    admin = await db.admins.find_one({"id": admin_id})
+    if not admin:
+        raise HTTPException(status_code=404, detail="Administrador no encontrado")
+    
+    # Update password
+    hashed_password = get_password_hash(new_password)
+    await db.admins.update_one(
+        {"id": admin_id}, 
+        {"$set": {
+            "hashed_password": hashed_password,
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    return {"message": "Contraseña de administrador actualizada exitosamente"}
+
 @api_router.post("/admin/users", response_model=User)
 async def create_user(user_data: UserCreate, token_payload: dict = Depends(verify_token)):
     if token_payload.get("user_type") != "admin":
