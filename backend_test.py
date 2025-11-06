@@ -1558,6 +1558,24 @@ def main():
     tester.test_holdings_nonexistent_user()
     tester.test_holdings_nonexistent_holding()
 
+    # Test Admin Management functionality (NEW FEATURES)
+    print("\n" + "🔥" * 30)
+    print("🎯 TESTING ADMIN MANAGEMENT FUNCTIONALITY")
+    print("🔥" * 30)
+    
+    # Test admin management operations
+    admin_created, admin_data = tester.test_create_admin()
+    tester.test_get_admins()
+    if admin_created:
+        tester.test_update_admin()
+        tester.test_update_admin_duplicate_validation()
+        tester.test_update_admin_validation()
+        tester.test_change_admin_password()
+        tester.test_change_admin_password_validation()
+    tester.test_update_nonexistent_admin()
+    tester.test_change_nonexistent_admin_password()
+    tester.test_admin_management_permissions()
+
     # Test User Management functionality (NEW FEATURES)
     print("\n" + "🔥" * 30)
     print("🎯 TESTING USER MANAGEMENT FUNCTIONALITY")
