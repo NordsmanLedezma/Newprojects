@@ -927,6 +927,268 @@ class BondsAPITester:
             print("❌ User management permission validation failed")
             return False
 
+    def test_get_user_holdings_by_admin(self):
+        """Test admin getting holdings for specific user - NEW HOLDINGS MANAGEMENT FEATURE"""
+        if not self.created_user_id:
+            print("❌ No user ID available for holdings test")
+            return False
+            
+        print(f"\n🔍 Testing Get User Holdings by Admin...")
+        
+        success, response = self.run_test(
+            "Get User Holdings by Admin (GET)",
+            "GET",
+            f"admin/users/{self.created_user_id}/holdings",
+            200,
+            token=self.admin_token
+        )
+        
+        if success:
+            print("✅ Admin can get user holdings correctly")
+            if isinstance(response, list):
+                print(f"   Found {len(response)} holdings for user")
+            return True
+        else:
+            print("❌ Admin get user holdings failed")
+            return False
+
+    def test_create_holding_for_user_by_admin(self):
+        """Test admin creating holding for specific user - NEW HOLDINGS MANAGEMENT FEATURE"""
+        if not self.created_user_id:
+            print("❌ No user ID available for holdings creation test")
+            return False
+            
+        print(f"\n🔍 Testing Create Holding for User by Admin...")
+        
+        # Create a security first if we don't have one
+        if not self.created_security_id:
+            security_created, security_data = self.test_create_security()
+            if not security_created:
+                print("❌ Could not create security for holdings test")
+                return False
+        
+        holding_data = {
+            "filing_date": "2024-01-20",
+            "isin_or_latinex_code": f"US{datetime.now().strftime('%H%M%S')}AK07",
+            "holder_name": "Admin Created Holder",
+            "holder_id": "8-987-654",
+            "legal_representative": "Legal Rep Admin",
+            "amount_held": 250000.75,
+            "address": "Admin Created Address, Panama City",
+            "phone": "+507-987-6543",
+            "email": "admin.created@example.com"
+        }
+        
+        success, response = self.run_test(
+            "Create Holding for User by Admin (POST)",
+            "POST",
+            f"admin/users/{self.created_user_id}/holdings",
+            200,
+            data=holding_data,
+            token=self.admin_token
+        )
+        
+        if success and 'id' in response:
+            self.created_holding_id = response['id']
+            print("✅ Admin can create holdings for users correctly")
+            return True, holding_data
+        else:
+            print("❌ Admin create holding for user failed")
+            return False, {}
+
+    def test_update_holding_by_admin(self):
+        """Test admin updating holding - NEW HOLDINGS MANAGEMENT FEATURE"""
+        if not hasattr(self, 'created_holding_id') or not self.created_holding_id:
+            print("❌ No holding ID available for update test")
+            return False
+            
+        print(f"\n🔍 Testing Update Holding by Admin...")
+        
+        updated_holding_data = {
+            "filing_date": "2024-02-15",
+            "isin_or_latinex_code": f"US{datetime.now().strftime('%H%M%S')}UPD",
+            "holder_name": "Updated Holder Name",
+            "holder_id": "8-111-222",
+            "legal_representative": "Updated Legal Rep",
+            "amount_held": 300000.00,
+            "address": "Updated Address, Panama City",
+            "phone": "+507-111-2222",
+            "email": "updated.holder@example.com"
+        }
+        
+        success, response = self.run_test(
+            "Update Holding by Admin (PUT)",
+            "PUT",
+            f"admin/holdings/{self.created_holding_id}",
+            200,
+            data=updated_holding_data,
+            token=self.admin_token
+        )
+        
+        if success:
+            print("✅ Admin can update holdings correctly")
+            return True
+        else:
+            print("❌ Admin update holding failed")
+            return False
+
+    def test_delete_holding_by_admin(self):
+        """Test admin deleting holding - NEW HOLDINGS MANAGEMENT FEATURE"""
+        if not hasattr(self, 'created_holding_id') or not self.created_holding_id:
+            print("❌ No holding ID available for delete test")
+            return False
+            
+        print(f"\n🔍 Testing Delete Holding by Admin...")
+        
+        success, response = self.run_test(
+            "Delete Holding by Admin (DELETE)",
+            "DELETE",
+            f"admin/holdings/{self.created_holding_id}",
+            200,
+            token=self.admin_token
+        )
+        
+        if success:
+            print("✅ Admin can delete holdings correctly")
+            return True
+        else:
+            print("❌ Admin delete holding failed")
+            return False
+
+    def test_holdings_management_permissions(self):
+        """Test that only admins can manage holdings for other users"""
+        if not self.created_user_id:
+            print("❌ No user ID available for holdings permission test")
+            return False
+            
+        print(f"\n🔍 Testing Holdings Management Permissions...")
+        
+        # Test user trying to get another user's holdings (should fail)
+        success_get, response_get = self.run_test(
+            "Get User Holdings by User Token (Should Fail)",
+            "GET",
+            f"admin/users/{self.created_user_id}/holdings",
+            403,  # Should return 403 Forbidden
+            token=self.user_token
+        )
+        
+        # Test user trying to create holding for another user (should fail)
+        holding_data = {
+            "filing_date": "2024-01-20",
+            "isin_or_latinex_code": "US123456789",
+            "holder_name": "Unauthorized Holder",
+            "holder_id": "8-000-000",
+            "legal_representative": "",
+            "amount_held": 1000.00,
+            "address": "Unauthorized Address",
+            "phone": "+507-000-0000",
+            "email": "unauthorized@example.com"
+        }
+        
+        success_create, response_create = self.run_test(
+            "Create Holding for User by User Token (Should Fail)",
+            "POST",
+            f"admin/users/{self.created_user_id}/holdings",
+            403,  # Should return 403 Forbidden
+            data=holding_data,
+            token=self.user_token
+        )
+        
+        if success_get and success_create:
+            print("✅ Holdings management permission validation working correctly")
+            return True
+        else:
+            print("❌ Holdings management permission validation failed")
+            return False
+
+    def test_holdings_nonexistent_user(self):
+        """Test holdings operations with non-existent user"""
+        print(f"\n🔍 Testing Holdings Operations with Non-existent User...")
+        
+        fake_user_id = "nonexistent-user-id"
+        
+        # Test get holdings for non-existent user
+        success_get, response_get = self.run_test(
+            "Get Holdings for Non-existent User (Should Return 404)",
+            "GET",
+            f"admin/users/{fake_user_id}/holdings",
+            404,
+            token=self.admin_token
+        )
+        
+        # Test create holding for non-existent user
+        holding_data = {
+            "filing_date": "2024-01-20",
+            "isin_or_latinex_code": "US123456789",
+            "holder_name": "Test Holder",
+            "holder_id": "8-123-456",
+            "legal_representative": "",
+            "amount_held": 1000.00,
+            "address": "Test Address",
+            "phone": "+507-123-4567",
+            "email": "test@example.com"
+        }
+        
+        success_create, response_create = self.run_test(
+            "Create Holding for Non-existent User (Should Return 404)",
+            "POST",
+            f"admin/users/{fake_user_id}/holdings",
+            404,
+            data=holding_data,
+            token=self.admin_token
+        )
+        
+        if success_get and success_create:
+            print("✅ Non-existent user validation working correctly")
+            return True
+        else:
+            print("❌ Non-existent user validation failed")
+            return False
+
+    def test_holdings_nonexistent_holding(self):
+        """Test update/delete operations with non-existent holding"""
+        print(f"\n🔍 Testing Holdings Operations with Non-existent Holding...")
+        
+        fake_holding_id = "nonexistent-holding-id"
+        
+        # Test update non-existent holding
+        update_data = {
+            "filing_date": "2024-01-20",
+            "isin_or_latinex_code": "US123456789",
+            "holder_name": "Test Holder",
+            "holder_id": "8-123-456",
+            "legal_representative": "",
+            "amount_held": 1000.00,
+            "address": "Test Address",
+            "phone": "+507-123-4567",
+            "email": "test@example.com"
+        }
+        
+        success_update, response_update = self.run_test(
+            "Update Non-existent Holding (Should Return 404)",
+            "PUT",
+            f"admin/holdings/{fake_holding_id}",
+            404,
+            data=update_data,
+            token=self.admin_token
+        )
+        
+        # Test delete non-existent holding
+        success_delete, response_delete = self.run_test(
+            "Delete Non-existent Holding (Should Return 404)",
+            "DELETE",
+            f"admin/holdings/{fake_holding_id}",
+            404,
+            token=self.admin_token
+        )
+        
+        if success_update and success_delete:
+            print("✅ Non-existent holding validation working correctly")
+            return True
+        else:
+            print("❌ Non-existent holding validation failed")
+            return False
+
 def main():
     print("🚀 Starting Panamanian Bonds API Testing...")
     print("=" * 60)
