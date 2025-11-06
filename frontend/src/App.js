@@ -1202,13 +1202,14 @@ function AdminDashboard() {
                               </Badge>
                             </TableCell>
                             <TableCell>
-                              <div className="flex space-x-1">
+                              <div className="flex flex-wrap gap-1">
                                 <Button
                                   size="sm"
                                   variant="outline"
                                   onClick={() => startEditUser(user)}
                                   disabled={loading || editingUser !== null}
                                   data-testid={`edit-user-${user.id}`}
+                                  title="Editar usuario"
                                 >
                                   ✏️
                                 </Button>
@@ -1219,8 +1220,20 @@ function AdminDashboard() {
                                   disabled={loading || editingUser !== null}
                                   className="bg-blue-50 hover:bg-blue-100"
                                   data-testid={`change-password-${user.id}`}
+                                  title="Cambiar contraseña"
                                 >
                                   🔑
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => showUserHoldings(user)}
+                                  disabled={loading || editingUser !== null}
+                                  className="bg-purple-50 hover:bg-purple-100"
+                                  data-testid={`manage-holdings-${user.id}`}
+                                  title="Gestionar tenencias"
+                                >
+                                  📋
                                 </Button>
                                 <Button 
                                   size="sm" 
@@ -1229,6 +1242,7 @@ function AdminDashboard() {
                                   disabled={loading || editingUser !== null}
                                   className={user.is_active ? "bg-yellow-50 hover:bg-yellow-100" : "bg-green-50 hover:bg-green-100"}
                                   data-testid={`toggle-user-${user.id}`}
+                                  title={user.is_active ? "Desactivar usuario" : "Activar usuario"}
                                 >
                                   {user.is_active ? '⏸️' : '▶️'}
                                 </Button>
@@ -1238,6 +1252,7 @@ function AdminDashboard() {
                                   onClick={() => deleteUser(user.id, user.username)}
                                   disabled={loading || editingUser !== null}
                                   data-testid={`delete-user-${user.id}`}
+                                  title="Eliminar usuario"
                                 >
                                   🗑️
                                 </Button>
