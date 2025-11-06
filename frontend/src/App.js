@@ -428,6 +428,139 @@ function AdminDashboard() {
     }
     setLoading(false);
   };
+  const startEditUser = (user) => {
+    setEditingUser(user.id);
+    setEditUserData({
+      username: user.username || '',
+      email: user.email || '',
+      brokerage_name: user.brokerage_name || '',
+      is_active: user.is_active,
+      password: '' // Never pre-fill password
+    });
+  };
+
+  const cancelEditUser = () => {
+    setEditingUser(null);
+    setEditUserData({
+      username: '', email: '', brokerage_name: '', is_active: true, password: ''
+    });
+  };
+
+  const saveEditUser = async (userId) => {
+    setLoading(true);
+    try {
+      await axios.put(`${API}/admin/users/${userId}`, editUserData);
+      setEditingUser(null);
+      setEditUserData({
+        username: '', email: '', brokerage_name: '', is_active: true, password: ''
+      });
+      loadUsers();
+      toast.success('Usuario actualizado exitosamente');
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Error al actualizar usuario');
+    }
+    setLoading(false);
+  };
+
+  const deleteUser = async (userId, username) => {
+    const confirmed = window.confirm(
+      `¿Está seguro que desea eliminar el usuario "${username}"?\n\nEsta acción eliminará permanentemente el usuario y no se puede deshacer.\n\nNOTA: Si el usuario tiene tenencias registradas, no se podrá eliminar.`
+    );
+    
+    if (!confirmed) return;
+
+    try {
+      setLoading(true);
+      await axios.delete(`${API}/admin/users/${userId}`);
+      loadUsers();
+      toast.success('Usuario eliminado exitosamente');
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Error al eliminar usuario');
+    }
+    setLoading(false);
+  };
+
+  const changeUserPassword = async (userId, newPassword) => {
+    if (!newPassword || newPassword.length < 6) {
+      toast.error('La contraseña debe tener al menos 6 caracteres');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      await axios.put(`${API}/admin/users/${userId}/password`, {
+        new_password: newPassword
+      });
+      setShowPasswordDialog(null);
+      toast.success('Contraseña actualizada exitosamente');
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Error al actualizar contraseña');
+    }
+    setLoading(false);
+  };
+
+  const PasswordChangeDialog = ({ userId, username, onClose }) => {
+    const [newPassword, setNewPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+
+    const handleSubmit = (e) => {
+      e.preventDefault();
+      if (newPassword !== confirmPassword) {
+        toast.error('Las contraseñas no coinciden');
+        return;
+      }
+      changeUserPassword(userId, newPassword);
+    };
+
+    return (
+      <Dialog open={true} onOpenChange={onClose}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Cambiar Contraseña</DialogTitle>
+            <DialogDescription>
+              Cambiar contraseña para el usuario: {username}
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="new-password">Nueva Contraseña</Label>
+              <Input
+                id="new-password"
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="Mínimo 6 caracteres"
+                required
+                minLength={6}
+                data-testid="new-password-input"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="confirm-password">Confirmar Contraseña</Label>
+              <Input
+                id="confirm-password"
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Repetir nueva contraseña"
+                required
+                minLength={6}
+                data-testid="confirm-password-input"
+              />
+            </div>
+            <div className="flex space-x-2">
+              <Button type="submit" disabled={loading} data-testid="save-password-button">
+                {loading ? 'Guardando...' : 'Guardar Contraseña'}
+              </Button>
+              <Button type="button" variant="outline" onClick={onClose} data-testid="cancel-password-button">
+                Cancelar
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+    );
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
