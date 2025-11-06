@@ -612,6 +612,8 @@ function AdminDashboard() {
       filing_date: '', isin_or_latinex_code: '', holder_name: '', holder_id: '',
       legal_representative: '', amount_held: '', address: '', phone: '', email: ''
     });
+    // Reload users to update holdings count
+    loadUsers();
   };
 
   const createHoldingForUser = async (userId) => {
