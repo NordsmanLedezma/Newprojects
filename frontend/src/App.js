@@ -1170,7 +1170,16 @@ function AdminDashboard() {
                               </select>
                             </TableCell>
                             <TableCell>
-                              <span className="text-sm text-gray-500">-</span>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => showUserHoldings(user)}
+                                disabled={loading}
+                                className="bg-blue-50 hover:bg-blue-100 border-blue-200 text-xs"
+                                data-testid={`view-holdings-edit-${user.id}`}
+                              >
+                                Ver tenencias
+                              </Button>
                             </TableCell>
                             <TableCell>
                               <div className="flex space-x-1">
