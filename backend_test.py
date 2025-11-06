@@ -972,7 +972,22 @@ def main():
     tester.test_excel_import()
     tester.test_invalid_excel_import()
 
-    # Test Individual Security Edit/Delete functionality (NEW FEATURES)
+    # Test User Management functionality (NEW FEATURES)
+    print("\n" + "🔥" * 30)
+    print("🎯 TESTING USER MANAGEMENT FUNCTIONALITY")
+    print("🔥" * 30)
+    
+    # Test user management operations
+    tester.test_update_user()
+    tester.test_update_user_duplicate_validation()
+    tester.test_change_user_password()
+    tester.test_change_user_password_validation()
+    tester.test_update_nonexistent_user()
+    tester.test_delete_nonexistent_user()
+    tester.test_user_management_permissions()
+    tester.test_delete_user()  # This should be last as it deletes the user
+    
+    # Test Individual Security Edit/Delete functionality (EXISTING FEATURES)
     print("\n" + "🔥" * 30)
     print("🎯 TESTING INDIVIDUAL SECURITY EDIT/DELETE FUNCTIONALITY")
     print("🔥" * 30)
