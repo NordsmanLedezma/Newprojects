@@ -656,6 +656,277 @@ class BondsAPITester:
             print("❌ Security edit/delete permission validation failed")
             return False
 
+    def test_update_user(self):
+        """Test updating user information - NEW USER MANAGEMENT FEATURE"""
+        if not self.created_user_id:
+            print("❌ No user ID available for update test")
+            return False
+            
+        print(f"\n🔍 Testing Update User Information...")
+        
+        # Updated user data
+        timestamp = datetime.now().strftime('%H%M%S')
+        updated_data = {
+            "username": f"updated_user_{timestamp}",
+            "email": f"updated_{timestamp}@example.com",
+            "brokerage_name": "Casa de Corretaje Actualizada",
+            "is_active": True,
+            "password": "newpassword123"
+        }
+        
+        success, response = self.run_test(
+            "Update User (PUT)",
+            "PUT",
+            f"admin/users/{self.created_user_id}",
+            200,
+            data=updated_data,
+            token=self.admin_token
+        )
+        
+        if success:
+            print("✅ User update working correctly")
+            return True, updated_data
+        else:
+            print("❌ User update failed")
+            return False, {}
+
+    def test_update_user_duplicate_validation(self):
+        """Test update user with duplicate username"""
+        if not self.created_user_id:
+            print("❌ No user ID available for duplicate validation test")
+            return False
+            
+        print(f"\n🔍 Testing Update User Duplicate Validation...")
+        
+        # First create another user to test duplicate validation
+        timestamp = datetime.now().strftime('%H%M%S')
+        another_user_data = {
+            "username": f"duplicate_test_{timestamp}",
+            "password": "testpass123",
+            "email": f"duplicate_{timestamp}@example.com",
+            "brokerage_name": "Casa de Duplicado"
+        }
+        
+        success, response = self.run_test(
+            "Create Another User for Duplicate Test",
+            "POST",
+            "admin/users",
+            200,
+            data=another_user_data,
+            token=self.admin_token
+        )
+        
+        if not success:
+            print("❌ Could not create second user for duplicate test")
+            return False
+            
+        # Now try to update the first user with the same username as the second
+        duplicate_data = {
+            "username": another_user_data["username"],
+            "email": "trying_duplicate@example.com",
+            "brokerage_name": "Trying to duplicate username",
+            "is_active": True,
+            "password": "somepassword"
+        }
+        
+        success, response = self.run_test(
+            "Update User with Duplicate Username (Should Fail)",
+            "PUT",
+            f"admin/users/{self.created_user_id}",
+            400,  # Should return 400 for duplicate
+            data=duplicate_data,
+            token=self.admin_token
+        )
+        
+        if success:
+            print("✅ User duplicate validation working correctly")
+            return True
+        else:
+            print("❌ User duplicate validation failed - should have rejected duplicate username")
+            return False
+
+    def test_change_user_password(self):
+        """Test changing user password - NEW USER MANAGEMENT FEATURE"""
+        if not self.created_user_id:
+            print("❌ No user ID available for password change test")
+            return False
+            
+        print(f"\n🔍 Testing Change User Password...")
+        
+        password_data = {
+            "new_password": "newpassword456"
+        }
+        
+        success, response = self.run_test(
+            "Change User Password (PUT)",
+            "PUT",
+            f"admin/users/{self.created_user_id}/password",
+            200,
+            data=password_data,
+            token=self.admin_token
+        )
+        
+        if success:
+            print("✅ User password change working correctly")
+            return True
+        else:
+            print("❌ User password change failed")
+            return False
+
+    def test_change_user_password_validation(self):
+        """Test password change validation (short password)"""
+        if not self.created_user_id:
+            print("❌ No user ID available for password validation test")
+            return False
+            
+        print(f"\n🔍 Testing Password Change Validation...")
+        
+        # Test with password too short
+        invalid_password_data = {
+            "new_password": "123"  # Less than 6 characters
+        }
+        
+        success, response = self.run_test(
+            "Change User Password (Too Short - Should Fail)",
+            "PUT",
+            f"admin/users/{self.created_user_id}/password",
+            400,  # Should return 400 for invalid password
+            data=invalid_password_data,
+            token=self.admin_token
+        )
+        
+        if success:
+            print("✅ Password validation working correctly")
+            return True
+        else:
+            print("❌ Password validation failed - should have rejected short password")
+            return False
+
+    def test_delete_user(self):
+        """Test deleting a user - NEW USER MANAGEMENT FEATURE"""
+        if not self.created_user_id:
+            print("❌ No user ID available for delete test")
+            return False
+            
+        print(f"\n🔍 Testing Delete User...")
+        
+        success, response = self.run_test(
+            "Delete User (DELETE)",
+            "DELETE",
+            f"admin/users/{self.created_user_id}",
+            200,
+            token=self.admin_token
+        )
+        
+        if success:
+            print("✅ User deletion working correctly")
+            return True
+        else:
+            print("❌ User deletion failed")
+            return False
+
+    def test_delete_nonexistent_user(self):
+        """Test deleting a non-existent user"""
+        print(f"\n🔍 Testing Delete Non-existent User...")
+        
+        fake_id = "nonexistent-user-id"
+        success, response = self.run_test(
+            "Delete Non-existent User (Should Return 404)",
+            "DELETE",
+            f"admin/users/{fake_id}",
+            404,
+            token=self.admin_token
+        )
+        
+        if success:
+            print("✅ Non-existent user deletion validation working correctly")
+            return True
+        else:
+            print("❌ Non-existent user deletion validation failed")
+            return False
+
+    def test_update_nonexistent_user(self):
+        """Test updating a non-existent user"""
+        print(f"\n🔍 Testing Update Non-existent User...")
+        
+        fake_id = "nonexistent-user-id"
+        update_data = {
+            "username": "nonexistent",
+            "email": "nonexistent@example.com",
+            "brokerage_name": "Non-existent brokerage",
+            "is_active": True,
+            "password": "password123"
+        }
+        
+        success, response = self.run_test(
+            "Update Non-existent User (Should Return 404)",
+            "PUT",
+            f"admin/users/{fake_id}",
+            404,
+            data=update_data,
+            token=self.admin_token
+        )
+        
+        if success:
+            print("✅ Non-existent user update validation working correctly")
+            return True
+        else:
+            print("❌ Non-existent user update validation failed")
+            return False
+
+    def test_user_management_permissions(self):
+        """Test that only admins can manage users"""
+        if not self.created_user_id:
+            print("❌ No user ID available for permission test")
+            return False
+            
+        print(f"\n🔍 Testing User Management Permissions...")
+        
+        # Test user trying to update another user (should fail)
+        update_data = {
+            "username": "unauthorized_update",
+            "email": "unauthorized@example.com",
+            "brokerage_name": "Unauthorized brokerage",
+            "is_active": True,
+            "password": "password123"
+        }
+        
+        success_update, response_update = self.run_test(
+            "Update User (User Token - Should Fail)",
+            "PUT",
+            f"admin/users/{self.created_user_id}",
+            403,  # Should return 403 Forbidden
+            data=update_data,
+            token=self.user_token
+        )
+        
+        # Test user trying to delete another user (should fail)
+        success_delete, response_delete = self.run_test(
+            "Delete User (User Token - Should Fail)",
+            "DELETE",
+            f"admin/users/{self.created_user_id}",
+            403,  # Should return 403 Forbidden
+            token=self.user_token
+        )
+        
+        # Test user trying to change another user's password (should fail)
+        password_data = {"new_password": "unauthorized123"}
+        success_password, response_password = self.run_test(
+            "Change User Password (User Token - Should Fail)",
+            "PUT",
+            f"admin/users/{self.created_user_id}/password",
+            403,  # Should return 403 Forbidden
+            data=password_data,
+            token=self.user_token
+        )
+        
+        if success_update and success_delete and success_password:
+            print("✅ User management permission validation working correctly")
+            return True
+        else:
+            print("❌ User management permission validation failed")
+            return False
+
 def main():
     print("🚀 Starting Panamanian Bonds API Testing...")
     print("=" * 60)
