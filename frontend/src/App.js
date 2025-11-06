@@ -971,6 +971,121 @@ function AdminDashboard() {
     );
   };
 
+  // Admin management functions
+  const startEditAdmin = (admin) => {
+    setEditingAdmin(admin.id);
+    setEditAdminData({
+      username: admin.username || '',
+      email: admin.email || '',
+      password: '' // Never pre-fill password
+    });
+  };
+
+  const cancelEditAdmin = () => {
+    setEditingAdmin(null);
+    setEditAdminData({
+      username: '', email: '', password: ''
+    });
+  };
+
+  const saveEditAdmin = async (adminId) => {
+    setLoading(true);
+    try {
+      await axios.put(`${API}/admin/admins/${adminId}`, editAdminData);
+      setEditingAdmin(null);
+      setEditAdminData({
+        username: '', email: '', password: ''
+      });
+      loadAdmins();
+      toast.success('Administrador actualizado exitosamente');
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Error al actualizar administrador');
+    }
+    setLoading(false);
+  };
+
+  const changeAdminPassword = async (adminId, newPassword) => {
+    if (!newPassword || newPassword.length < 6) {
+      toast.error('La contraseña debe tener al menos 6 caracteres');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      await axios.put(`${API}/admin/admins/${adminId}/password`, {
+        new_password: newPassword
+      });
+      setShowAdminPasswordDialog(null);
+      toast.success('Contraseña de administrador actualizada exitosamente');
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Error al actualizar contraseña del administrador');
+    }
+    setLoading(false);
+  };
+
+  const AdminPasswordChangeDialog = ({ adminId, username, onClose }) => {
+    const [newPassword, setNewPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+
+    const handleSubmit = (e) => {
+      e.preventDefault();
+      if (newPassword !== confirmPassword) {
+        toast.error('Las contraseñas no coinciden');
+        return;
+      }
+      changeAdminPassword(adminId, newPassword);
+    };
+
+    return (
+      <Dialog open={true} onOpenChange={onClose}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Cambiar Contraseña de Administrador</DialogTitle>
+            <DialogDescription>
+              Cambiar contraseña para el administrador: {username}
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="admin-new-password">Nueva Contraseña</Label>
+              <Input
+                id="admin-new-password"
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="Mínimo 6 caracteres"
+                required
+                minLength={6}
+                data-testid="admin-new-password-input"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="admin-confirm-password">Confirmar Contraseña</Label>
+              <Input
+                id="admin-confirm-password"
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Repetir nueva contraseña"
+                required
+                minLength={6}
+                data-testid="admin-confirm-password-input"
+              />
+            </div>
+            <div className="flex space-x-2">
+              <Button type="submit" disabled={loading} data-testid="save-admin-password-button">
+                {loading ? 'Guardando...' : 'Guardar Contraseña'}
+              </Button>
+              <Button type="button" variant="outline" onClick={onClose} data-testid="cancel-admin-password-button">
+                Cancelar
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
