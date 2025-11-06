@@ -236,6 +236,90 @@ async def get_users(token_payload: dict = Depends(verify_token)):
     users = await db.users.find().to_list(1000)
     return [User(**user) for user in users]
 
+@api_router.put("/admin/users/{user_id}", response_model=User)
+async def update_user(user_id: str, user_data: UserCreate, token_payload: dict = Depends(verify_token)):
+    if token_payload.get("user_type") != "admin":
+        raise HTTPException(status_code=403, detail="Acceso denegado")
+    
+    # Check if user exists
+    existing_user = await db.users.find_one({"id": user_id})
+    if not existing_user:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    
+    # Check for duplicate username (excluding current user)
+    duplicate = await db.users.find_one({"username": user_data.username, "id": {"$ne": user_id}})
+    if duplicate:
+        raise HTTPException(status_code=400, detail="Ya existe otro usuario con ese nombre de usuario")
+    
+    # Prepare update data
+    update_data = {
+        "username": user_data.username,
+        "email": user_data.email,
+        "brokerage_name": user_data.brokerage_name,
+        "is_active": user_data.is_active,
+        "updated_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    # Update password if provided
+    if user_data.password:
+        update_data["hashed_password"] = get_password_hash(user_data.password)
+    
+    # Update user
+    await db.users.update_one({"id": user_id}, {"$set": update_data})
+    
+    # Return updated user
+    updated_user = await db.users.find_one({"id": user_id})
+    return User(**updated_user)
+
+@api_router.put("/admin/users/{user_id}/password")
+async def update_user_password(user_id: str, password_data: dict, token_payload: dict = Depends(verify_token)):
+    if token_payload.get("user_type") != "admin":
+        raise HTTPException(status_code=403, detail="Acceso denegado")
+    
+    # Validate password data
+    new_password = password_data.get("new_password")
+    if not new_password or len(new_password) < 6:
+        raise HTTPException(status_code=400, detail="La contraseña debe tener al menos 6 caracteres")
+    
+    # Check if user exists
+    user = await db.users.find_one({"id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    
+    # Update password
+    hashed_password = get_password_hash(new_password)
+    await db.users.update_one(
+        {"id": user_id}, 
+        {"$set": {
+            "hashed_password": hashed_password,
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    return {"message": "Contraseña actualizada exitosamente"}
+
+@api_router.delete("/admin/users/{user_id}")
+async def delete_user(user_id: str, token_payload: dict = Depends(verify_token)):
+    if token_payload.get("user_type") != "admin":
+        raise HTTPException(status_code=403, detail="Acceso denegado")
+    
+    # Check if user exists
+    user = await db.users.find_one({"id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    
+    # Check if user has holdings
+    holdings_count = await db.holdings.count_documents({"user_id": user_id})
+    if holdings_count > 0:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"No se puede eliminar el usuario porque tiene {holdings_count} tenencias registradas"
+        )
+    
+    # Delete user
+    await db.users.delete_one({"id": user_id})
+    return {"message": "Usuario eliminado exitosamente"}
+
 @api_router.put("/admin/users/{user_id}/toggle")
 async def toggle_user_status(user_id: str, token_payload: dict = Depends(verify_token)):
     if token_payload.get("user_type") != "admin":
