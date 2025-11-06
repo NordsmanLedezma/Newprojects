@@ -183,6 +183,11 @@ function AdminDashboard() {
     filing_date: '', isin_or_latinex_code: '', holder_name: '', holder_id: '',
     legal_representative: '', amount_held: '', address: '', phone: '', email: ''
   });
+  const [editingAdmin, setEditingAdmin] = useState(null);
+  const [editAdminData, setEditAdminData] = useState({
+    username: '', email: '', password: ''
+  });
+  const [showAdminPasswordDialog, setShowAdminPasswordDialog] = useState(null);
   const [loading, setLoading] = useState(false);
   const { logout } = useAuth();
 
