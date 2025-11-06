@@ -1207,9 +1207,16 @@ function AdminDashboard() {
                               </Badge>
                             </TableCell>
                             <TableCell>
-                              <Badge variant="outline" className="bg-blue-50">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => showUserHoldings(user)}
+                                disabled={loading || editingUser !== null}
+                                className="bg-blue-50 hover:bg-blue-100 border-blue-200"
+                                data-testid={`view-holdings-${user.id}`}
+                              >
                                 Ver tenencias
-                              </Badge>
+                              </Button>
                             </TableCell>
                             <TableCell>
                               <div className="flex flex-wrap gap-1">
