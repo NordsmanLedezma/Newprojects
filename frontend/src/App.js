@@ -712,6 +712,7 @@ function AdminDashboard() {
             <Card>
               <CardHeader>
                 <CardTitle>Usuarios Registrados</CardTitle>
+                <CardDescription>{users.length} usuarios registrados</CardDescription>
               </CardHeader>
               <CardContent>
                 <Table>
@@ -721,34 +722,145 @@ function AdminDashboard() {
                       <TableHead>Email</TableHead>
                       <TableHead>Casa de Corretaje</TableHead>
                       <TableHead>Estado</TableHead>
-                      <TableHead>Acciones</TableHead>
+                      <TableHead className="w-48">Acciones</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {users.map((user) => (
                       <TableRow key={user.id}>
-                        <TableCell className="font-medium">{user.username}</TableCell>
-                        <TableCell>{user.email}</TableCell>
-                        <TableCell>{user.brokerage_name}</TableCell>
-                        <TableCell>
-                          <Badge variant={user.is_active ? "default" : "secondary"}>
-                            {user.is_active ? 'Activo' : 'Inactivo'}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <Button 
-                            size="sm" 
-                            variant="outline" 
-                            onClick={() => toggleUserStatus(user.id)}
-                            data-testid={`toggle-user-${user.id}`}
-                          >
-                            {user.is_active ? 'Desactivar' : 'Activar'}
-                          </Button>
-                        </TableCell>
+                        {editingUser === user.id ? (
+                          // Edit mode
+                          <>
+                            <TableCell>
+                              <Input
+                                value={editUserData.username}
+                                onChange={(e) => setEditUserData({ ...editUserData, username: e.target.value })}
+                                placeholder="Nombre de usuario"
+                                required
+                                data-testid={`edit-username-${user.id}`}
+                              />
+                            </TableCell>
+                            <TableCell>
+                              <Input
+                                type="email"
+                                value={editUserData.email}
+                                onChange={(e) => setEditUserData({ ...editUserData, email: e.target.value })}
+                                placeholder="Email"
+                                required
+                                data-testid={`edit-email-${user.id}`}
+                              />
+                            </TableCell>
+                            <TableCell>
+                              <Input
+                                value={editUserData.brokerage_name}
+                                onChange={(e) => setEditUserData({ ...editUserData, brokerage_name: e.target.value })}
+                                placeholder="Casa de Corretaje"
+                                required
+                                data-testid={`edit-brokerage-${user.id}`}
+                              />
+                            </TableCell>
+                            <TableCell>
+                              <select
+                                value={editUserData.is_active}
+                                onChange={(e) => setEditUserData({ ...editUserData, is_active: e.target.value === 'true' })}
+                                className="w-full p-2 border rounded"
+                                data-testid={`edit-status-${user.id}`}
+                              >
+                                <option value={true}>Activo</option>
+                                <option value={false}>Inactivo</option>
+                              </select>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex space-x-1">
+                                <Button
+                                  size="sm"
+                                  onClick={() => saveEditUser(user.id)}
+                                  disabled={loading}
+                                  className="bg-green-600 hover:bg-green-700"
+                                  data-testid={`save-user-${user.id}`}
+                                >
+                                  ✓
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={cancelEditUser}
+                                  disabled={loading}
+                                  data-testid={`cancel-edit-user-${user.id}`}
+                                >
+                                  ✗
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </>
+                        ) : (
+                          // View mode
+                          <>
+                            <TableCell className="font-medium">{user.username}</TableCell>
+                            <TableCell>{user.email}</TableCell>
+                            <TableCell>{user.brokerage_name}</TableCell>
+                            <TableCell>
+                              <Badge variant={user.is_active ? "default" : "secondary"}>
+                                {user.is_active ? 'Activo' : 'Inactivo'}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex space-x-1">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => startEditUser(user)}
+                                  disabled={loading || editingUser !== null}
+                                  data-testid={`edit-user-${user.id}`}
+                                >
+                                  ✏️
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => setShowPasswordDialog({ userId: user.id, username: user.username })}
+                                  disabled={loading || editingUser !== null}
+                                  className="bg-blue-50 hover:bg-blue-100"
+                                  data-testid={`change-password-${user.id}`}
+                                >
+                                  🔑
+                                </Button>
+                                <Button 
+                                  size="sm" 
+                                  variant="outline" 
+                                  onClick={() => toggleUserStatus(user.id)}
+                                  disabled={loading || editingUser !== null}
+                                  className={user.is_active ? "bg-yellow-50 hover:bg-yellow-100" : "bg-green-50 hover:bg-green-100"}
+                                  data-testid={`toggle-user-${user.id}`}
+                                >
+                                  {user.is_active ? '⏸️' : '▶️'}
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="destructive"
+                                  onClick={() => deleteUser(user.id, user.username)}
+                                  disabled={loading || editingUser !== null}
+                                  data-testid={`delete-user-${user.id}`}
+                                >
+                                  🗑️
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </>
+                        )}
                       </TableRow>
                     ))}
                   </TableBody>
                 </Table>
+                
+                {/* Password Change Dialog */}
+                {showPasswordDialog && (
+                  <PasswordChangeDialog
+                    userId={showPasswordDialog.userId}
+                    username={showPasswordDialog.username}
+                    onClose={() => setShowPasswordDialog(null)}
+                  />
+                )}
               </CardContent>
             </Card>
           </TabsContent>
