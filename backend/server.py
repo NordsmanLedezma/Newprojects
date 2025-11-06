@@ -494,6 +494,114 @@ async def get_all_holdings(token_payload: dict = Depends(verify_token)):
     holdings = await db.holdings.find().to_list(1000)
     return [Holding(**holding) for holding in holdings]
 
+@api_router.get("/admin/users/{user_id}/holdings", response_model=List[Holding])
+async def get_user_holdings_by_admin(user_id: str, token_payload: dict = Depends(verify_token)):
+    if token_payload.get("user_type") != "admin":
+        raise HTTPException(status_code=403, detail="Acceso denegado")
+    
+    # Verify user exists
+    user = await db.users.find_one({"id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    
+    holdings = await db.holdings.find({"user_id": user_id}).to_list(1000)
+    return [Holding(**holding) for holding in holdings]
+
+@api_router.post("/admin/users/{user_id}/holdings", response_model=Holding)
+async def create_holding_for_user(user_id: str, holding_data: HoldingCreate, token_payload: dict = Depends(verify_token)):
+    if token_payload.get("user_type") != "admin":
+        raise HTTPException(status_code=403, detail="Acceso denegado")
+    
+    # Verify user exists
+    user = await db.users.find_one({"id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    
+    # Get security info
+    query = {"$or": [
+        {"isin_code": holding_data.isin_or_latinex_code}, 
+        {"latinex_code": holding_data.isin_or_latinex_code}
+    ]}
+    security = await db.securities.find_one(query)
+    
+    holding_dict = holding_data.dict()
+    holding_dict["user_id"] = user_id
+    if security:
+        holding_dict["security_info"] = {
+            "isin_code": security.get("isin_code"),
+            "latinex_code": security.get("latinex_code"),
+            "security_description": security["security_description"],
+            "coupon": security["coupon"],
+            "maturity_date": security["maturity_date"]
+        }
+    
+    holding_obj = Holding(**holding_dict)
+    holding_dict = prepare_for_mongo(holding_obj.dict())
+    await db.holdings.insert_one(holding_dict)
+    
+    # Update master holdings
+    await update_master_holdings()
+    
+    return holding_obj
+
+@api_router.put("/admin/holdings/{holding_id}", response_model=Holding)
+async def update_holding_by_admin(holding_id: str, holding_data: HoldingCreate, token_payload: dict = Depends(verify_token)):
+    if token_payload.get("user_type") != "admin":
+        raise HTTPException(status_code=403, detail="Acceso denegado")
+    
+    # Check if holding exists
+    existing = await db.holdings.find_one({"id": holding_id})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Tenencia no encontrada")
+    
+    # Get security info
+    query = {"$or": [
+        {"isin_code": holding_data.isin_or_latinex_code}, 
+        {"latinex_code": holding_data.isin_or_latinex_code}
+    ]}
+    security = await db.securities.find_one(query)
+    
+    # Prepare update data
+    update_data = holding_data.dict()
+    update_data["updated_at"] = datetime.now(timezone.utc).isoformat()
+    
+    if security:
+        update_data["security_info"] = {
+            "isin_code": security.get("isin_code"),
+            "latinex_code": security.get("latinex_code"),
+            "security_description": security["security_description"],
+            "coupon": security["coupon"],
+            "maturity_date": security["maturity_date"]
+        }
+    
+    # Update holding
+    await db.holdings.update_one({"id": holding_id}, {"$set": update_data})
+    
+    # Update master holdings
+    await update_master_holdings()
+    
+    # Return updated holding
+    updated_holding = await db.holdings.find_one({"id": holding_id})
+    return Holding(**updated_holding)
+
+@api_router.delete("/admin/holdings/{holding_id}")
+async def delete_holding_by_admin(holding_id: str, token_payload: dict = Depends(verify_token)):
+    if token_payload.get("user_type") != "admin":
+        raise HTTPException(status_code=403, detail="Acceso denegado")
+    
+    # Check if holding exists
+    existing = await db.holdings.find_one({"id": holding_id})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Tenencia no encontrada")
+    
+    # Delete holding
+    await db.holdings.delete_one({"id": holding_id})
+    
+    # Update master holdings
+    await update_master_holdings()
+    
+    return {"message": "Tenencia eliminada exitosamente"}
+
 async def update_master_holdings():
     """Update master holdings collection with consolidated data"""
     # Clear existing master holdings
