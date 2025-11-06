@@ -1730,6 +1730,13 @@ function AdminDashboard() {
 
           {/* Admins Tab */}
           <TabsContent value="admins" className="space-y-6">
+            <Alert className="bg-blue-50 border-blue-200">
+              <AlertDescription>
+                💡 <strong>Gestión de Administradores:</strong> Puede crear nuevos administradores, 
+                editar su información (✏️) y cambiar sus contraseñas (🔑) de forma segura.
+              </AlertDescription>
+            </Alert>
+            
             <Card>
               <CardHeader>
                 <CardTitle>Crear Nuevo Administrador</CardTitle>
