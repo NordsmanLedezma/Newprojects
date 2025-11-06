@@ -1119,6 +1119,7 @@ function AdminDashboard() {
                       <TableHead>Email</TableHead>
                       <TableHead>Casa de Corretaje</TableHead>
                       <TableHead>Estado</TableHead>
+                      <TableHead>Tenencias</TableHead>
                       <TableHead className="w-48">Acciones</TableHead>
                     </TableRow>
                   </TableHeader>
