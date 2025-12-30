@@ -1970,6 +1970,26 @@ function UserDashboard() {
     setLoading(false);
   };
 
+  const deleteHolding = async (holdingId, holderName) => {
+    const confirmed = window.confirm(
+      `⚠️ ¿Está seguro que desea eliminar esta tenencia?\n\nTenedor: "${holderName}"\n\n` +
+      `Esta acción registrará la fecha de eliminación para fines de auditoría.\n` +
+      `La tenencia será removida de su lista pero mantenida en el historial del sistema.`
+    );
+    
+    if (!confirmed) return;
+
+    try {
+      setLoading(true);
+      const response = await axios.delete(`${API}/holdings/${holdingId}`);
+      toast.success(`Tenencia eliminada exitosamente.\nFecha de eliminación: ${new Date(response.data.deleted_at).toLocaleString('es-PA')}`);
+      loadHoldings();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Error al eliminar tenencia');
+    }
+    setLoading(false);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
