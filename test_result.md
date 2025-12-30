@@ -297,13 +297,10 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Soft delete holdings - user endpoint"
-    - "Delete button on user holdings"
-    - "Vencimientos tab in admin panel"
-    - "Maturity check endpoint"
+    - "All backend features tested successfully"
   stuck_tasks: []
   test_all: false
-  test_priority: "high_first"
+  test_priority: "completed"
 
 agent_communication:
   - agent: "main"
