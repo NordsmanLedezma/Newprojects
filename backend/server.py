@@ -833,13 +833,168 @@ async def delete_holding_by_admin(holding_id: str, token_payload: dict = Depends
     if not existing:
         raise HTTPException(status_code=404, detail="Tenencia no encontrada")
     
-    # Delete holding
-    await db.holdings.delete_one({"id": holding_id})
+    # Soft delete - mark as deleted with timestamp
+    await db.holdings.update_one(
+        {"id": holding_id}, 
+        {"$set": {
+            "is_deleted": True,
+            "deleted_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
     
     # Update master holdings
     await update_master_holdings()
     
-    return {"message": "Tenencia eliminada exitosamente"}
+    return {"message": "Tenencia eliminada exitosamente", "deleted_at": datetime.now(timezone.utc).isoformat()}
+
+# User endpoint to delete their own holdings (soft delete)
+@api_router.delete("/holdings/{holding_id}")
+async def delete_user_holding(holding_id: str, token_payload: dict = Depends(verify_token)):
+    if token_payload.get("user_type") != "user":
+        raise HTTPException(status_code=403, detail="Acceso denegado")
+    
+    # Check if holding exists and belongs to user
+    existing = await db.holdings.find_one({
+        "id": holding_id, 
+        "user_id": token_payload["user_id"],
+        "is_deleted": {"$ne": True}
+    })
+    if not existing:
+        raise HTTPException(status_code=404, detail="Tenencia no encontrada")
+    
+    # Soft delete - mark as deleted with timestamp
+    deleted_at = datetime.now(timezone.utc).isoformat()
+    await db.holdings.update_one(
+        {"id": holding_id}, 
+        {"$set": {
+            "is_deleted": True,
+            "deleted_at": deleted_at
+        }}
+    )
+    
+    # Update master holdings
+    await update_master_holdings()
+    
+    return {
+        "message": "Tenencia eliminada exitosamente",
+        "deleted_at": deleted_at,
+        "holding_id": holding_id
+    }
+
+# Maturity System Endpoints
+@api_router.get("/admin/maturity/check")
+async def check_maturity_alerts(token_payload: dict = Depends(verify_token)):
+    """Manually trigger maturity check and create alerts"""
+    if token_payload.get("user_type") != "admin":
+        raise HTTPException(status_code=403, detail="Acceso denegado")
+    
+    alerts_created = await check_maturing_securities()
+    return {
+        "message": f"Verificación completada. {alerts_created} nuevas alertas creadas.",
+        "alerts_created": alerts_created
+    }
+
+@api_router.get("/admin/maturity/pending")
+async def get_pending_maturity_alerts(token_payload: dict = Depends(verify_token)):
+    """Get all pending maturity alerts that need admin approval"""
+    if token_payload.get("user_type") != "admin":
+        raise HTTPException(status_code=403, detail="Acceso denegado")
+    
+    alerts = await db.maturity_alerts.find({"admin_approved": False}).to_list(1000)
+    # Remove MongoDB _id field
+    for alert in alerts:
+        alert.pop("_id", None)
+    return alerts
+
+@api_router.post("/admin/maturity/{alert_id}/approve")
+async def approve_maturity_alert(alert_id: str, token_payload: dict = Depends(verify_token)):
+    """Admin approves the archival of matured security"""
+    if token_payload.get("user_type") != "admin":
+        raise HTTPException(status_code=403, detail="Acceso denegado")
+    
+    # Find the alert
+    alert = await db.maturity_alerts.find_one({"id": alert_id})
+    if not alert:
+        raise HTTPException(status_code=404, detail="Alerta no encontrada")
+    
+    if alert.get("admin_approved"):
+        raise HTTPException(status_code=400, detail="Esta alerta ya fue aprobada")
+    
+    # Update security status to "Vencido"
+    security_id = alert["security_id"]
+    await db.securities.update_one(
+        {"id": security_id},
+        {"$set": {"status": "Vencido"}}
+    )
+    
+    # Mark all affected holdings as deleted (soft delete)
+    for holding_info in alert.get("affected_holdings", []):
+        await db.holdings.update_one(
+            {"id": holding_info["holding_id"]},
+            {"$set": {
+                "is_deleted": True,
+                "deleted_at": datetime.now(timezone.utc).isoformat(),
+                "deleted_reason": "Valor vencido - Aprobado por administrador"
+            }}
+        )
+    
+    # Update alert as approved
+    await db.maturity_alerts.update_one(
+        {"id": alert_id},
+        {"$set": {
+            "admin_approved": True,
+            "approved_by": token_payload.get("user_id"),
+            "approved_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    # Update master holdings
+    await update_master_holdings()
+    
+    return {
+        "message": "Alerta aprobada. El valor ha sido marcado como vencido y las tenencias afectadas han sido archivadas.",
+        "security_id": security_id,
+        "holdings_archived": len(alert.get("affected_holdings", []))
+    }
+
+@api_router.get("/admin/securities/expired")
+async def get_expired_securities(token_payload: dict = Depends(verify_token)):
+    """Get all expired (vencido) securities"""
+    if token_payload.get("user_type") != "admin":
+        raise HTTPException(status_code=403, detail="Acceso denegado")
+    
+    securities = await db.securities.find({"status": "Vencido"}).to_list(1000)
+    return [Security(**s) for s in securities]
+
+@api_router.get("/admin/holdings/deleted")
+async def get_deleted_holdings(token_payload: dict = Depends(verify_token)):
+    """Get all deleted holdings for audit purposes"""
+    if token_payload.get("user_type") != "admin":
+        raise HTTPException(status_code=403, detail="Acceso denegado")
+    
+    holdings = await db.holdings.find({"is_deleted": True}).to_list(1000)
+    # Remove MongoDB _id and add user info
+    result = []
+    for holding in holdings:
+        holding.pop("_id", None)
+        user = await db.users.find_one({"id": holding.get("user_id")})
+        holding["user_info"] = {
+            "username": user.get("username") if user else "N/A",
+            "brokerage_name": user.get("brokerage_name") if user else "N/A"
+        }
+        result.append(holding)
+    return result
+
+@api_router.get("/admin/email-logs")
+async def get_email_logs(token_payload: dict = Depends(verify_token)):
+    """Get email logs (mocked emails)"""
+    if token_payload.get("user_type") != "admin":
+        raise HTTPException(status_code=403, detail="Acceso denegado")
+    
+    logs = await db.email_logs.find().sort("sent_at", -1).to_list(100)
+    for log in logs:
+        log.pop("_id", None)
+    return logs
 
 async def update_master_holdings():
     """Update master holdings collection with consolidated data"""
