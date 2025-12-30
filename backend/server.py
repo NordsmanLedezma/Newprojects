@@ -1263,19 +1263,20 @@ async def export_to_excel(token_payload: dict = Depends(verify_token)):
     ]).to_list(1000)
     
     for master in master_holdings:
-        # Get security description
+        # Safely get security description - handle empty source_holdings
         security_info = None
-        if master.get("source_holdings"):
-            security_info = master["source_holdings"][0].get("security_info", {})
+        source_holdings = master.get("source_holdings", [])
+        if source_holdings and len(source_holdings) > 0:
+            security_info = source_holdings[0].get("security_info", {})
         
         ws3.append([
-            master["filing_date"],
-            master["isin_or_latinex_code"],
+            master.get("filing_date", ""),
+            master.get("isin_or_latinex_code", ""),
             security_info.get("security_description", "") if security_info else "",
-            master["holder_name"],
-            master["holder_id"],
-            master["total_amount"],
-            master["holdings_count"]
+            master.get("holder_name", ""),
+            master.get("holder_id", ""),
+            master.get("total_amount", 0),
+            master.get("holdings_count", 0)
         ])
     
     # Auto-adjust column widths
