@@ -1166,10 +1166,11 @@ function AdminDashboard() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="users" data-testid="users-tab">Usuarios</TabsTrigger>
             <TabsTrigger value="securities" data-testid="securities-tab">Valores ISIN</TabsTrigger>
             <TabsTrigger value="holdings" data-testid="holdings-tab">Tenencias</TabsTrigger>
+            <TabsTrigger value="maturity" data-testid="maturity-tab">Vencimientos</TabsTrigger>
             <TabsTrigger value="admins" data-testid="admins-tab">Administradores</TabsTrigger>
           </TabsList>
 
