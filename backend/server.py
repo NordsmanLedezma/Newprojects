@@ -1230,17 +1230,19 @@ async def export_to_excel(token_payload: dict = Depends(verify_token)):
     
     holdings_with_users = await db.holdings.aggregate(pipeline).to_list(1000)
     for holding in holdings_with_users:
-        user_info = holding.get("user_info", [{}])[0]
+        # Safely get user_info - handle empty list
+        user_info_list = holding.get("user_info", [])
+        user_info = user_info_list[0] if user_info_list else {}
         ws2.append([
-            holding["filing_date"],
-            holding["isin_or_latinex_code"],
-            holding["holder_name"],
-            holding["holder_id"],
+            holding.get("filing_date", ""),
+            holding.get("isin_or_latinex_code", ""),
+            holding.get("holder_name", ""),
+            holding.get("holder_id", ""),
             holding.get("legal_representative", ""),
-            holding["amount_held"],
-            holding["address"],
-            holding["phone"],
-            holding["email"],
+            holding.get("amount_held", 0),
+            holding.get("address", ""),
+            holding.get("phone", ""),
+            holding.get("email", ""),
             user_info.get("brokerage_name", "")
         ])
     
