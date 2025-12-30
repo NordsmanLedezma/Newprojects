@@ -188,6 +188,11 @@ function AdminDashboard() {
     username: '', email: '', password: ''
   });
   const [showAdminPasswordDialog, setShowAdminPasswordDialog] = useState(null);
+  // Maturity system state
+  const [maturityAlerts, setMaturityAlerts] = useState([]);
+  const [expiredSecurities, setExpiredSecurities] = useState([]);
+  const [deletedHoldings, setDeletedHoldings] = useState([]);
+  const [emailLogs, setEmailLogs] = useState([]);
   const [loading, setLoading] = useState(false);
   const { logout } = useAuth();
 
@@ -196,6 +201,7 @@ function AdminDashboard() {
     if (activeTab === 'securities') loadSecurities();
     if (activeTab === 'holdings') loadHoldings();
     if (activeTab === 'admins') loadAdmins();
+    if (activeTab === 'maturity') loadMaturityData();
   }, [activeTab]);
 
   const loadUsers = async () => {
