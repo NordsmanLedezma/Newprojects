@@ -168,6 +168,152 @@ def prepare_for_mongo(data):
                 data[key] = value.isoformat()
     return data
 
+# Mocked Email Service
+async def send_mock_email(to_email: str, subject: str, body: str, email_type: str, admin_email: str = None):
+    """
+    MOCKED EMAIL SERVICE - Logs emails to database instead of sending.
+    Replace with real email service when company email server is configured.
+    """
+    # Log the email to the database
+    email_log = {
+        "id": str(uuid.uuid4()),
+        "to_email": to_email,
+        "subject": subject,
+        "body": body,
+        "email_type": email_type,
+        "sent_at": datetime.now(timezone.utc).isoformat(),
+        "is_mock": True
+    }
+    await db.email_logs.insert_one(email_log)
+    
+    # If admin email is provided, also log that
+    if admin_email:
+        admin_log = {
+            "id": str(uuid.uuid4()),
+            "to_email": admin_email,
+            "subject": f"[ADMIN] {subject}",
+            "body": body,
+            "email_type": f"{email_type}_admin",
+            "sent_at": datetime.now(timezone.utc).isoformat(),
+            "is_mock": True
+        }
+        await db.email_logs.insert_one(admin_log)
+    
+    print(f"📧 [MOCK EMAIL] To: {to_email}, Subject: {subject}")
+    if admin_email:
+        print(f"📧 [MOCK EMAIL - ADMIN] To: {admin_email}, Subject: [ADMIN] {subject}")
+    
+    return True
+
+async def check_maturing_securities():
+    """
+    Check for securities maturing in the next 5 days and create alerts.
+    This function should be called by a scheduler or manually by admin.
+    """
+    from datetime import timedelta
+    
+    today = datetime.now(timezone.utc).date()
+    alert_date = today + timedelta(days=5)
+    
+    # Format dates for comparison
+    today_str = today.isoformat()
+    alert_date_str = alert_date.isoformat()
+    
+    # Find securities that are about to mature
+    securities = await db.securities.find({
+        "status": "En Circulación",
+        "maturity_date": {"$lte": alert_date_str, "$gte": today_str}
+    }).to_list(1000)
+    
+    alerts_created = 0
+    admin_email = "admin@sistema-bonos.pa"  # Fixed admin email
+    
+    for security in securities:
+        # Check if alert already exists for this security
+        existing_alert = await db.maturity_alerts.find_one({
+            "security_id": security["id"],
+            "admin_approved": False
+        })
+        
+        if existing_alert:
+            continue
+        
+        # Calculate days to maturity
+        maturity_date = datetime.fromisoformat(security["maturity_date"]).date()
+        days_to_maturity = (maturity_date - today).days
+        
+        # Find all holdings with this security
+        holdings = await db.holdings.find({
+            "$or": [
+                {"isin_or_latinex_code": security.get("isin_code")},
+                {"isin_or_latinex_code": security.get("latinex_code")}
+            ],
+            "is_deleted": {"$ne": True}
+        }).to_list(1000)
+        
+        # Get user info for each holding
+        affected_holdings = []
+        for holding in holdings:
+            user = await db.users.find_one({"id": holding["user_id"]})
+            affected_holdings.append({
+                "holding_id": holding["id"],
+                "user_id": holding["user_id"],
+                "user_email": holding.get("email"),
+                "brokerage_name": user.get("brokerage_name") if user else "N/A",
+                "holder_name": holding["holder_name"],
+                "amount_held": holding["amount_held"]
+            })
+            
+            # Send mocked email to user
+            email_body = f"""
+            Estimado(a) {holding['holder_name']},
+            
+            Le informamos que el valor {security['security_description']} 
+            (ISIN: {security.get('isin_code', 'N/A')} / Latinex: {security.get('latinex_code', 'N/A')})
+            vencerá en {days_to_maturity} días (Fecha de vencimiento: {security['maturity_date']}).
+            
+            El valor será eliminado automáticamente de su registro a menos que exista un 
+            "Evento de Consecuencia" que justifique su permanencia.
+            
+            Por favor, contacte a su casa de corretaje para más información.
+            
+            Atentamente,
+            Sistema de Registro de Bonos de Panamá
+            """
+            
+            await send_mock_email(
+                to_email=holding.get("email"),
+                subject=f"⚠️ Alerta de Vencimiento: {security['security_description']}",
+                body=email_body,
+                email_type="maturity_alert",
+                admin_email=admin_email
+            )
+        
+        # Create maturity alert
+        alert = {
+            "id": str(uuid.uuid4()),
+            "security_id": security["id"],
+            "security_info": {
+                "isin_code": security.get("isin_code"),
+                "latinex_code": security.get("latinex_code"),
+                "security_description": security["security_description"],
+                "coupon": security["coupon"],
+                "maturity_date": security["maturity_date"]
+            },
+            "affected_holdings": affected_holdings,
+            "days_to_maturity": days_to_maturity,
+            "alert_sent": True,
+            "admin_approved": False,
+            "approved_by": None,
+            "approved_at": None,
+            "created_at": datetime.now(timezone.utc).isoformat()
+        }
+        
+        await db.maturity_alerts.insert_one(alert)
+        alerts_created += 1
+    
+    return alerts_created
+
 # Authentication endpoints
 @api_router.post("/auth/login", response_model=Token)
 async def login(login_data: LoginRequest):
