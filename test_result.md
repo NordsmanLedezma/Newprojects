@@ -345,7 +345,8 @@ metadata:
 
 test_plan:
   current_focus:
-    - "All frontend features tested successfully"
+    - "All backend features tested and working"
+    - "Two previously failing endpoints successfully fixed"
   stuck_tasks: []
   test_all: false
   test_priority: "completed"
