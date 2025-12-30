@@ -67,6 +67,7 @@ class SecurityBase(BaseModel):
     coupon: str
     issue_date: str
     maturity_date: str
+    status: str = "En Circulación"  # "En Circulación" | "Vencido"
     
     @validator('isin_code', 'latinex_code')
     def at_least_one_code(cls, v, values):
