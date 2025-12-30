@@ -1788,6 +1788,242 @@ function AdminDashboard() {
             </Card>
           </TabsContent>
 
+          {/* Maturity/Vencimientos Tab */}
+          <TabsContent value="maturity" className="space-y-6">
+            <Alert className="bg-amber-50 border-amber-200">
+              <AlertDescription>
+                ⚠️ <strong>Sistema de Vencimientos:</strong> Gestione valores próximos a vencer, 
+                apruebe archivados y revise el historial de eliminaciones. Los emails son actualmente 
+                <Badge variant="outline" className="ml-2">MOCKEADOS</Badge> hasta configurar el servidor de email de la empresa.
+              </AlertDescription>
+            </Alert>
+
+            {/* Check Maturity Button */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Verificar Vencimientos</CardTitle>
+                <CardDescription>
+                  Ejecutar verificación manual de valores próximos a vencer (5 días)
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button 
+                  onClick={checkMaturityAlerts}
+                  disabled={loading}
+                  className="bg-amber-600 hover:bg-amber-700"
+                  data-testid="check-maturity-button"
+                >
+                  {loading ? 'Verificando...' : '🔍 Verificar Vencimientos Ahora'}
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Pending Maturity Alerts */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Alertas Pendientes de Aprobación</CardTitle>
+                <CardDescription>
+                  {maturityAlerts.length} alertas requieren acción administrativa
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {maturityAlerts.length > 0 ? (
+                  <div className="space-y-4">
+                    {maturityAlerts.map((alert) => (
+                      <div key={alert.id} className="border rounded-lg p-4 bg-amber-50">
+                        <div className="flex justify-between items-start mb-3">
+                          <div>
+                            <h4 className="font-semibold text-lg">
+                              {alert.security_info?.security_description}
+                            </h4>
+                            <p className="text-sm text-gray-600">
+                              ISIN: {alert.security_info?.isin_code || 'N/A'} | 
+                              Latinex: {alert.security_info?.latinex_code || 'N/A'}
+                            </p>
+                          </div>
+                          <Badge variant="destructive">
+                            ⏰ {alert.days_to_maturity} días para vencer
+                          </Badge>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2 text-sm mb-3">
+                          <div><strong>Cupón:</strong> {alert.security_info?.coupon}</div>
+                          <div><strong>Vencimiento:</strong> {alert.security_info?.maturity_date}</div>
+                          <div><strong>Tenencias afectadas:</strong> {alert.affected_holdings?.length || 0}</div>
+                          <div><strong>Alerta enviada:</strong> {alert.alert_sent ? '✅ Sí' : '❌ No'}</div>
+                        </div>
+                        {alert.affected_holdings?.length > 0 && (
+                          <div className="mb-3">
+                            <p className="text-sm font-medium mb-1">Tenedores afectados:</p>
+                            <div className="max-h-32 overflow-y-auto bg-white rounded p-2 text-xs">
+                              {alert.affected_holdings.map((h, idx) => (
+                                <div key={idx} className="flex justify-between py-1 border-b last:border-0">
+                                  <span>{h.holder_name} ({h.brokerage_name})</span>
+                                  <span className="font-semibold">${h.amount_held?.toLocaleString()}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        <Button
+                          onClick={() => approveMaturityAlert(alert.id)}
+                          disabled={loading}
+                          variant="destructive"
+                          data-testid={`approve-maturity-${alert.id}`}
+                        >
+                          {loading ? 'Procesando...' : '✓ Aprobar Archivado'}
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    <p>✅ No hay alertas pendientes de aprobación</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Expired Securities */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Valores Vencidos</CardTitle>
+                <CardDescription>
+                  {expiredSecurities.length} valores marcados como vencidos
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {expiredSecurities.length > 0 ? (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>ISIN</TableHead>
+                        <TableHead>Latinex</TableHead>
+                        <TableHead>Descripción</TableHead>
+                        <TableHead>Cupón</TableHead>
+                        <TableHead>F. Vencimiento</TableHead>
+                        <TableHead>Estado</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {expiredSecurities.map((security) => (
+                        <TableRow key={security.id} className="bg-red-50">
+                          <TableCell className="font-mono text-sm">{security.isin_code || '-'}</TableCell>
+                          <TableCell className="font-mono text-sm">{security.latinex_code || '-'}</TableCell>
+                          <TableCell>{security.security_description}</TableCell>
+                          <TableCell>{security.coupon}</TableCell>
+                          <TableCell>{security.maturity_date}</TableCell>
+                          <TableCell>
+                            <Badge variant="destructive">Vencido</Badge>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    <p>No hay valores vencidos registrados</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Deleted Holdings Audit */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Historial de Tenencias Eliminadas</CardTitle>
+                <CardDescription>
+                  {deletedHoldings.length} tenencias archivadas (auditoría)
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {deletedHoldings.length > 0 ? (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Fecha Eliminación</TableHead>
+                        <TableHead>Tenedor</TableHead>
+                        <TableHead>Código</TableHead>
+                        <TableHead>Cantidad</TableHead>
+                        <TableHead>Usuario</TableHead>
+                        <TableHead>Motivo</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {deletedHoldings.map((holding) => (
+                        <TableRow key={holding.id} className="bg-gray-50">
+                          <TableCell className="text-sm">
+                            {holding.deleted_at ? new Date(holding.deleted_at).toLocaleString('es-PA') : 'N/A'}
+                          </TableCell>
+                          <TableCell>{holding.holder_name}</TableCell>
+                          <TableCell className="font-mono text-sm">{holding.isin_or_latinex_code}</TableCell>
+                          <TableCell className="text-right">{holding.amount_held?.toLocaleString()}</TableCell>
+                          <TableCell>{holding.user_info?.brokerage_name || 'N/A'}</TableCell>
+                          <TableCell className="text-xs text-gray-500">
+                            {holding.deleted_reason || 'Eliminado por usuario'}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    <p>No hay tenencias eliminadas</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Email Logs (Mocked) */}
+            <Card>
+              <CardHeader>
+                <CardTitle>📧 Registro de Emails (MOCKEADOS)</CardTitle>
+                <CardDescription>
+                  Historial de notificaciones enviadas (simuladas hasta configurar servidor de email)
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {emailLogs.length > 0 ? (
+                  <div className="max-h-64 overflow-y-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Fecha</TableHead>
+                          <TableHead>Destinatario</TableHead>
+                          <TableHead>Asunto</TableHead>
+                          <TableHead>Tipo</TableHead>
+                          <TableHead>Estado</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {emailLogs.map((log) => (
+                          <TableRow key={log.id}>
+                            <TableCell className="text-sm">
+                              {new Date(log.sent_at).toLocaleString('es-PA')}
+                            </TableCell>
+                            <TableCell className="text-sm">{log.to_email}</TableCell>
+                            <TableCell className="max-w-xs truncate" title={log.subject}>
+                              {log.subject}
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant="outline">{log.email_type}</Badge>
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant="secondary">📧 MOCK</Badge>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    <p>No hay emails registrados</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
           {/* Admins Tab */}
           <TabsContent value="admins" className="space-y-6">
             <Alert className="bg-blue-50 border-blue-200">
