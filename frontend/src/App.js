@@ -251,6 +251,59 @@ function AdminDashboard() {
     }
   };
 
+  // Maturity system functions
+  const loadMaturityData = async () => {
+    try {
+      const [alertsRes, expiredRes, deletedRes, logsRes] = await Promise.all([
+        axios.get(`${API}/admin/maturity/pending`),
+        axios.get(`${API}/admin/securities/expired`),
+        axios.get(`${API}/admin/holdings/deleted`),
+        axios.get(`${API}/admin/email-logs`)
+      ]);
+      setMaturityAlerts(alertsRes.data);
+      setExpiredSecurities(expiredRes.data);
+      setDeletedHoldings(deletedRes.data);
+      setEmailLogs(logsRes.data);
+    } catch (error) {
+      toast.error('Error al cargar datos de vencimientos');
+    }
+  };
+
+  const checkMaturityAlerts = async () => {
+    setLoading(true);
+    try {
+      const response = await axios.get(`${API}/admin/maturity/check`);
+      toast.success(response.data.message);
+      loadMaturityData();
+    } catch (error) {
+      toast.error('Error al verificar vencimientos');
+    }
+    setLoading(false);
+  };
+
+  const approveMaturityAlert = async (alertId) => {
+    const confirmed = window.confirm(
+      '⚠️ CONFIRMACIÓN DE ARCHIVADO\n\n' +
+      'Al aprobar esta alerta:\n' +
+      '• El valor será marcado como "Vencido"\n' +
+      '• Las tenencias asociadas serán archivadas\n' +
+      '• Los usuarios ya no verán estas tenencias en sus listas\n\n' +
+      '¿Desea continuar?'
+    );
+    
+    if (!confirmed) return;
+
+    setLoading(true);
+    try {
+      const response = await axios.post(`${API}/admin/maturity/${alertId}/approve`);
+      toast.success(response.data.message);
+      loadMaturityData();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Error al aprobar archivado');
+    }
+    setLoading(false);
+  };
+
   const createUser = async (e) => {
     e.preventDefault();
     setLoading(true);
