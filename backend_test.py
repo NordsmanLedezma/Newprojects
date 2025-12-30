@@ -1923,15 +1923,22 @@ def main():
         print("\n❌ Admin login failed - stopping tests")
         return 1
 
-    # Test user management
-    user_created, user_data = tester.test_create_user()
-    if not user_created:
-        print("\n❌ User creation failed")
-        return 1
-
-    if not tester.test_user_login(user_data):
-        print("\n❌ User login failed")
-        return 1
+    # Test login with specific test credentials
+    if not tester.test_user_login_with_credentials():
+        print("\n❌ Test user login failed - creating test user")
+        # Create test user if login fails
+        user_created, user_data = tester.test_create_user()
+        if not user_created:
+            print("\n❌ User creation failed")
+            return 1
+        if not tester.test_user_login(user_data):
+            print("\n❌ User login failed")
+            return 1
+    else:
+        # Also create a regular user for other tests
+        user_created, user_data = tester.test_create_user()
+        if user_created:
+            tester.test_user_login(user_data)
 
     tester.test_get_users()
 
@@ -1957,7 +1964,35 @@ def main():
     tester.test_excel_import()
     tester.test_invalid_excel_import()
 
-    # Test Holdings Management functionality (NEW FEATURES)
+    # ===== NEW SOFT DELETE AND MATURITY SYSTEM TESTS =====
+    print("\n" + "🔥" * 50)
+    print("🎯 TESTING NEW SOFT DELETE AND MATURITY SYSTEM FEATURES")
+    print("🔥" * 50)
+    
+    # Test soft delete functionality
+    print("\n📋 Testing Soft Delete Holdings...")
+    soft_delete_success, deleted_holding_id = tester.test_soft_delete_user_holding()
+    tester.test_soft_delete_nonexistent_holding()
+    tester.test_soft_delete_other_user_holding()
+    
+    # Test maturity system
+    print("\n📅 Testing Maturity System...")
+    tester.test_maturity_check_endpoint()
+    tester.test_pending_maturity_alerts()
+    tester.test_expired_securities_endpoint()
+    tester.test_deleted_holdings_audit()
+    tester.test_email_logs_endpoint()
+    tester.test_approve_maturity_alert()
+    
+    # Test holdings filtering
+    print("\n🔍 Testing Holdings Filtering...")
+    tester.test_holdings_filtering_admin()
+    
+    # Test permissions
+    print("\n🔒 Testing Maturity System Permissions...")
+    tester.test_maturity_system_permissions()
+
+    # Test Holdings Management functionality (EXISTING FEATURES)
     print("\n" + "🔥" * 30)
     print("🎯 TESTING HOLDINGS MANAGEMENT FUNCTIONALITY")
     print("🔥" * 30)
@@ -1972,7 +2007,7 @@ def main():
     tester.test_holdings_nonexistent_user()
     tester.test_holdings_nonexistent_holding()
 
-    # Test Admin Management functionality (NEW FEATURES)
+    # Test Admin Management functionality (EXISTING FEATURES)
     print("\n" + "🔥" * 30)
     print("🎯 TESTING ADMIN MANAGEMENT FUNCTIONALITY")
     print("🔥" * 30)
@@ -1990,7 +2025,7 @@ def main():
     tester.test_change_nonexistent_admin_password()
     tester.test_admin_management_permissions()
 
-    # Test User Management functionality (NEW FEATURES)
+    # Test User Management functionality (EXISTING FEATURES)
     print("\n" + "🔥" * 30)
     print("🎯 TESTING USER MANAGEMENT FUNCTIONALITY")
     print("🔥" * 30)
