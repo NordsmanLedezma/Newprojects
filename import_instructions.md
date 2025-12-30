@@ -31,7 +31,7 @@
 ### **Step-by-Step Instructions:**
 
 1. **Login to System**
-   - URL: `https://bondregistry.preview.emergentagent.com`
+   - URL: `https://bondholding.preview.emergentagent.com`
    - Username: `admin`
    - Password: `admin123`
 
@@ -98,14 +98,14 @@
 
 **Check Total Count:**
 ```bash
-curl -X GET https://bondregistry.preview.emergentagent.com/api/admin/securities \
+curl -X GET https://bondholding.preview.emergentagent.com/api/admin/securities \
   -H "Authorization: Bearer [TOKEN]" | jq '. | length'
 # Result: 40
 ```
 
 **Verify Specific Bond:**
 ```bash
-curl -X GET https://bondregistry.preview.emergentagent.com/api/securities/search/US698299AK07 \
+curl -X GET https://bondholding.preview.emergentagent.com/api/securities/search/US698299AK07 \
   -H "Authorization: Bearer [TOKEN]"
 ```
 

@@ -10,7 +10,7 @@ sudo supervisorctl status
 echo
 
 echo "[2/4] Testing Backend API..."
-if curl -X POST https://bondregistry.preview.emergentagent.com/api/auth/login \
+if curl -X POST https://bondholding.preview.emergentagent.com/api/auth/login \
    -H "Content-Type: application/json" \
    -d '{"username":"admin","password":"admin123"}' \
    -s > /dev/null; then
@@ -21,7 +21,7 @@ fi
 echo
 
 echo "[3/4] Testing aplicación web..."
-if curl -I https://bondregistry.preview.emergentagent.com -s | grep -q "200 OK"; then
+if curl -I https://bondholding.preview.emergentagent.com -s | grep -q "200 OK"; then
     echo "✅ Aplicación web respondiendo correctamente"  
 else
     echo "❌ Error en aplicación web"
@@ -38,7 +38,7 @@ echo "TESTING COMPLETADO"
 echo "============================================"
 echo
 echo "URLS DE ACCESO:"
-echo "- Aplicación: https://bondregistry.preview.emergentagent.com"
+echo "- Aplicación: https://bondholding.preview.emergentagent.com"
 echo "- Admin: usuario 'admin', contraseña 'admin123'"
 echo
 echo "ARCHIVOS DE TESTING:"

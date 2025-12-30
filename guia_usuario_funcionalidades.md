@@ -117,14 +117,14 @@ Columna F: Fecha de Vencimiento (REQUERIDO)
 ### **Verificación de Importación:**
 ```bash
 # Verificar que los valores se importaron
-curl -X GET https://bondregistry.preview.emergentagent.com/api/admin/securities \
+curl -X GET https://bondholding.preview.emergentagent.com/api/admin/securities \
   -H "Authorization: Bearer [TOKEN]" | jq '. | length'
 ```
 
 ### **Verificación de Limpieza:**
 ```bash
 # Limpiar todos los valores
-curl -X DELETE https://bondregistry.preview.emergentagent.com/api/admin/securities/clear-all \
+curl -X DELETE https://bondholding.preview.emergentagent.com/api/admin/securities/clear-all \
   -H "Authorization: Bearer [TOKEN]"
 ```
 

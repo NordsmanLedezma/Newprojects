@@ -85,21 +85,21 @@ Estado: ❌ INACTIVO
 
 ### **Login de Administrador (Acceso Completo)**
 ```
-URL: https://bondregistry.preview.emergentagent.com
+URL: https://bondholding.preview.emergentagent.com
 Usuario: admin
 Contraseña: admin123
 ```
 
 ### **Login de Administrador Alternativo**
 ```
-URL: https://bondregistry.preview.emergentagent.com
+URL: https://bondholding.preview.emergentagent.com
 Usuario: superadmin
 Contraseña: Panama2025!
 ```
 
 ### **Login de Usuario de Casa de Corretaje**
 ```
-URL: https://bondregistry.preview.emergentagent.com
+URL: https://bondholding.preview.emergentagent.com
 Usuario: testuser
 Contraseña: testpassword123
 ```
@@ -159,14 +159,14 @@ Contraseña: testpassword123
 
 ### **Verificar Login Admin:**
 ```bash
-curl -X POST https://bondregistry.preview.emergentagent.com/api/auth/login \
+curl -X POST https://bondholding.preview.emergentagent.com/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"username":"admin","password":"admin123"}'
 ```
 
 ### **Verificar Login Usuario:**
 ```bash
-curl -X POST https://bondregistry.preview.emergentagent.com/api/auth/login \
+curl -X POST https://bondholding.preview.emergentagent.com/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"username":"testuser","password":"testpassword123"}'
 ```

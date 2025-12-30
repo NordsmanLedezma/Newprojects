@@ -3,7 +3,7 @@ import json
 
 # Login as admin
 def get_admin_token():
-    login_url = "https://bondregistry.preview.emergentagent.com/api/auth/login"
+    login_url = "https://bondholding.preview.emergentagent.com/api/auth/login"
     login_data = {"username": "admin", "password": "admin123"}
     
     response = requests.post(login_url, json=login_data)
@@ -14,7 +14,7 @@ def get_admin_token():
 
 # Get securities data
 def get_securities(token):
-    securities_url = "https://bondregistry.preview.emergentagent.com/api/admin/securities"
+    securities_url = "https://bondholding.preview.emergentagent.com/api/admin/securities"
     headers = {"Authorization": f"Bearer {token}"}
     
     response = requests.get(securities_url, headers=headers)

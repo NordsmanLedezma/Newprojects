@@ -7,7 +7,7 @@ La aplicación está **ACTIVA** y ejecutándose automáticamente via supervisord
 - **Frontend**: Puerto 3000 (React)
 - **Backend**: Puerto 8001 (FastAPI) 
 - **Base de datos**: MongoDB activa
-- **URL Pública**: https://bondregistry.preview.emergentagent.com
+- **URL Pública**: https://bondholding.preview.emergentagent.com
 
 ---
 
@@ -26,12 +26,12 @@ python backend_test.py
 ### **2. Testing Manual API**
 ```bash
 # Testing de login
-curl -X POST https://bondregistry.preview.emergentagent.com/api/auth/login \
+curl -X POST https://bondholding.preview.emergentagent.com/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"username":"admin","password":"admin123"}'
 
 # Testing de valores ISIN
-curl -X GET https://bondregistry.preview.emergentagent.com/api/admin/securities \
+curl -X GET https://bondholding.preview.emergentagent.com/api/admin/securities \
   -H "Authorization: Bearer [TOKEN]"
 ```
 
@@ -85,9 +85,9 @@ sudo systemctl start mongod
 ## 🌐 ACCESO A LA APLICACIÓN
 
 ### **URLs de Acceso:**
-- **Aplicación Web**: https://bondregistry.preview.emergentagent.com
-- **API Backend**: https://bondregistry.preview.emergentagent.com/api
-- **Documentación API**: https://bondregistry.preview.emergentagent.com/docs
+- **Aplicación Web**: https://bondholding.preview.emergentagent.com
+- **API Backend**: https://bondholding.preview.emergentagent.com/api
+- **Documentación API**: https://bondholding.preview.emergentagent.com/docs
 
 ### **Credenciales de Administrador:**
 ```
@@ -119,7 +119,7 @@ python backend_test.py
 ### **2. Testing Frontend (Navegador)**
 ```bash
 # Abrir en navegador
-https://bondregistry.preview.emergentagent.com
+https://bondholding.preview.emergentagent.com
 
 # Pasos de testing manual:
 1. Login como admin (admin/admin123)
@@ -137,14 +137,14 @@ cd /app
 python -c "
 import requests
 print('🔐 Testing login...')
-response = requests.post('https://bondregistry.preview.emergentagent.com/api/auth/login', 
+response = requests.post('https://bondholding.preview.emergentagent.com/api/auth/login', 
                         json={'username':'admin','password':'admin123'})
 if response.status_code == 200:
     print('✅ Login successful')
     token = response.json()['access_token']
     
     print('📊 Testing securities...')
-    securities = requests.get('https://bondregistry.preview.emergentagent.com/api/admin/securities',
+    securities = requests.get('https://bondholding.preview.emergentagent.com/api/admin/securities',
                             headers={'Authorization': f'Bearer {token}'})
     if securities.status_code == 200:
         count = len(securities.json())
@@ -207,10 +207,10 @@ tail -f /var/log/supervisor/frontend*.log
 ### **Testing Rápido:**
 ```bash
 # Test backend API
-curl https://bondregistry.preview.emergentagent.com/api/admin/securities
+curl https://bondholding.preview.emergentagent.com/api/admin/securities
 
 # Test aplicación web
-curl -I https://bondregistry.preview.emergentagent.com
+curl -I https://bondholding.preview.emergentagent.com
 ```
 
 ### **Base de Datos:**
@@ -262,7 +262,7 @@ sudo systemctl start mongod
 
 ### **Sistema Funcionando Correctamente Cuando:**
 - [ ] `sudo supervisorctl status` muestra todos RUNNING
-- [ ] https://bondregistry.preview.emergentagent.com carga correctamente
+- [ ] https://bondholding.preview.emergentagent.com carga correctamente
 - [ ] Login admin/admin123 funciona
 - [ ] Tabla "Valores ISIN" muestra 39+ bonos
 - [ ] `python backend_test.py` pasa todos los tests
