@@ -100,7 +100,32 @@ class Holding(HoldingBase):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     user_id: str
     security_info: Optional[Dict[str, Any]] = None
+    is_deleted: bool = False
+    deleted_at: Optional[str] = None
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+# Maturity Alert Model
+class MaturityAlert(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    security_id: str
+    security_info: Dict[str, Any]
+    affected_holdings: List[Dict[str, Any]] = []
+    days_to_maturity: int
+    alert_sent: bool = False
+    admin_approved: bool = False
+    approved_by: Optional[str] = None
+    approved_at: Optional[str] = None
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+# Email Log Model (for mocked emails)
+class EmailLog(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    to_email: str
+    subject: str
+    body: str
+    email_type: str  # "maturity_alert", "user_notification"
+    sent_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    is_mock: bool = True  # Always true until real email server is configured
 
 class LoginRequest(BaseModel):
     username: str
