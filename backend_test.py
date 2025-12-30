@@ -1913,7 +1913,305 @@ class BondsAPITester:
             print("❌ Cross-user holding protection failed")
             return False
 
+    def run_comprehensive_tests(self):
+        """Run all comprehensive tests"""
+        print("🚀 Starting Comprehensive Panama Government Bonds API Testing...")
+        print(f"   Base URL: {self.base_url}")
+        print(f"   API URL: {self.api_url}")
+        print("=" * 80)
+        
+        # Track failed tests with detailed error information
+        failed_tests = []
+        
+        # 1. Authentication Tests
+        print("\n" + "="*50)
+        print("🔐 AUTHENTICATION TESTS")
+        print("="*50)
+        
+        if not self.test_admin_login():
+            failed_tests.append({"test": "Admin Login", "category": "Authentication", "critical": True})
+            print("❌ Cannot continue without admin token")
+            return self.print_final_summary(failed_tests)
+            
+        if not self.test_user_login_with_credentials():
+            failed_tests.append({"test": "Test User Login", "category": "Authentication", "critical": True})
+            
+        # 2. User Management Tests
+        print("\n" + "="*50)
+        print("👥 USER MANAGEMENT TESTS")
+        print("="*50)
+        
+        user_created, user_data = self.test_create_user()
+        if not user_created:
+            failed_tests.append({"test": "Create User", "category": "User Management", "critical": False})
+        else:
+            if not self.test_user_login(user_data):
+                failed_tests.append({"test": "User Login", "category": "User Management", "critical": False})
+                
+        if not self.test_get_users():
+            failed_tests.append({"test": "Get Users", "category": "User Management", "critical": False})
+            
+        if not self.test_update_user():
+            failed_tests.append({"test": "Update User", "category": "User Management", "critical": False})
+            
+        if not self.test_update_user_duplicate_validation():
+            failed_tests.append({"test": "Update User Duplicate Validation", "category": "User Management", "critical": False})
+            
+        if not self.test_change_user_password():
+            failed_tests.append({"test": "Change User Password", "category": "User Management", "critical": False})
+            
+        if not self.test_change_user_password_validation():
+            failed_tests.append({"test": "Change User Password Validation", "category": "User Management", "critical": False})
+            
+        if not self.test_toggle_user_status():
+            failed_tests.append({"test": "Toggle User Status", "category": "User Management", "critical": False})
+            
+        if not self.test_delete_user():
+            failed_tests.append({"test": "Delete User", "category": "User Management", "critical": False})
+            
+        if not self.test_delete_nonexistent_user():
+            failed_tests.append({"test": "Delete Nonexistent User", "category": "User Management", "critical": False})
+            
+        if not self.test_update_nonexistent_user():
+            failed_tests.append({"test": "Update Nonexistent User", "category": "User Management", "critical": False})
+            
+        if not self.test_user_management_permissions():
+            failed_tests.append({"test": "User Management Permissions", "category": "User Management", "critical": False})
+            
+        # 3. Admin Management Tests
+        print("\n" + "="*50)
+        print("🔧 ADMIN MANAGEMENT TESTS")
+        print("="*50)
+        
+        admin_created, admin_data = self.test_create_admin()
+        if not admin_created:
+            failed_tests.append({"test": "Create Admin", "category": "Admin Management", "critical": False})
+            
+        if not self.test_get_admins():
+            failed_tests.append({"test": "Get Admins", "category": "Admin Management", "critical": False})
+            
+        if not self.test_update_admin():
+            failed_tests.append({"test": "Update Admin", "category": "Admin Management", "critical": False})
+            
+        if not self.test_update_admin_duplicate_validation():
+            failed_tests.append({"test": "Update Admin Duplicate Validation", "category": "Admin Management", "critical": False})
+            
+        if not self.test_update_admin_validation():
+            failed_tests.append({"test": "Update Admin Validation", "category": "Admin Management", "critical": False})
+            
+        if not self.test_change_admin_password():
+            failed_tests.append({"test": "Change Admin Password", "category": "Admin Management", "critical": False})
+            
+        if not self.test_change_admin_password_validation():
+            failed_tests.append({"test": "Change Admin Password Validation", "category": "Admin Management", "critical": False})
+            
+        if not self.test_update_nonexistent_admin():
+            failed_tests.append({"test": "Update Nonexistent Admin", "category": "Admin Management", "critical": False})
+            
+        if not self.test_change_nonexistent_admin_password():
+            failed_tests.append({"test": "Change Nonexistent Admin Password", "category": "Admin Management", "critical": False})
+            
+        if not self.test_admin_management_permissions():
+            failed_tests.append({"test": "Admin Management Permissions", "category": "Admin Management", "critical": False})
+            
+        # 4. Securities Management Tests
+        print("\n" + "="*50)
+        print("📊 SECURITIES MANAGEMENT TESTS")
+        print("="*50)
+        
+        security_created, security_data = self.test_create_security()
+        if not security_created:
+            failed_tests.append({"test": "Create Security", "category": "Securities Management", "critical": False})
+        else:
+            if not self.test_search_security(security_data):
+                failed_tests.append({"test": "Search Security", "category": "Securities Management", "critical": False})
+                
+        if not self.test_get_securities():
+            failed_tests.append({"test": "Get Securities", "category": "Securities Management", "critical": False})
+            
+        if not self.test_update_security():
+            failed_tests.append({"test": "Update Security", "category": "Securities Management", "critical": False})
+            
+        if not self.test_update_security_duplicate_validation():
+            failed_tests.append({"test": "Update Security Duplicate Validation", "category": "Securities Management", "critical": False})
+            
+        if not self.test_delete_security():
+            failed_tests.append({"test": "Delete Security", "category": "Securities Management", "critical": False})
+            
+        if not self.test_delete_nonexistent_security():
+            failed_tests.append({"test": "Delete Nonexistent Security", "category": "Securities Management", "critical": False})
+            
+        if not self.test_update_nonexistent_security():
+            failed_tests.append({"test": "Update Nonexistent Security", "category": "Securities Management", "critical": False})
+            
+        if not self.test_security_permissions():
+            failed_tests.append({"test": "Security Permissions", "category": "Securities Management", "critical": False})
+            
+        if not self.test_excel_import():
+            failed_tests.append({"test": "Excel Import", "category": "Securities Management", "critical": True})
+            
+        if not self.test_invalid_excel_import():
+            failed_tests.append({"test": "Invalid Excel Import", "category": "Securities Management", "critical": False})
+            
+        if not self.test_export_excel():
+            failed_tests.append({"test": "Export Excel", "category": "Securities Management", "critical": True})
+            
+        if not self.test_clear_all_securities():
+            failed_tests.append({"test": "Clear All Securities", "category": "Securities Management", "critical": True})
+            
+        if not self.test_clear_all_permissions():
+            failed_tests.append({"test": "Clear All Permissions", "category": "Securities Management", "critical": False})
+            
+        if not self.test_clear_all_without_token():
+            failed_tests.append({"test": "Clear All Without Token", "category": "Securities Management", "critical": False})
+            
+        # 5. Holdings Management Tests
+        print("\n" + "="*50)
+        print("📋 HOLDINGS MANAGEMENT TESTS")
+        print("="*50)
+        
+        # Recreate security for holdings tests
+        security_created, security_data = self.test_create_security()
+        if security_created and self.user_token:
+            if not self.test_create_holding(security_data):
+                failed_tests.append({"test": "Create Holding", "category": "Holdings Management", "critical": False})
+                
+        if not self.test_get_user_holdings():
+            failed_tests.append({"test": "Get User Holdings", "category": "Holdings Management", "critical": False})
+            
+        if not self.test_get_all_holdings():
+            failed_tests.append({"test": "Get All Holdings", "category": "Holdings Management", "critical": False})
+            
+        if not self.test_get_user_holdings_by_admin():
+            failed_tests.append({"test": "Get User Holdings by Admin", "category": "Holdings Management", "critical": False})
+            
+        holding_created, holding_data = self.test_create_holding_for_user_by_admin()
+        if not holding_created:
+            failed_tests.append({"test": "Create Holding for User by Admin", "category": "Holdings Management", "critical": False})
+            
+        if not self.test_update_holding_by_admin():
+            failed_tests.append({"test": "Update Holding by Admin", "category": "Holdings Management", "critical": False})
+            
+        if not self.test_delete_holding_by_admin():
+            failed_tests.append({"test": "Delete Holding by Admin", "category": "Holdings Management", "critical": True})
+            
+        if not self.test_holdings_management_permissions():
+            failed_tests.append({"test": "Holdings Management Permissions", "category": "Holdings Management", "critical": False})
+            
+        if not self.test_holdings_nonexistent_user():
+            failed_tests.append({"test": "Holdings Nonexistent User", "category": "Holdings Management", "critical": False})
+            
+        if not self.test_holdings_nonexistent_holding():
+            failed_tests.append({"test": "Holdings Nonexistent Holding", "category": "Holdings Management", "critical": False})
+            
+        # 6. NEW SOFT DELETE AND MATURITY SYSTEM TESTS
+        print("\n" + "="*50)
+        print("🗑️ SOFT DELETE & MATURITY SYSTEM TESTS")
+        print("="*50)
+        
+        soft_delete_result = self.test_soft_delete_user_holding()
+        if not soft_delete_result:
+            failed_tests.append({"test": "Soft Delete User Holding", "category": "Soft Delete & Maturity", "critical": True})
+            
+        if not self.test_maturity_check_endpoint():
+            failed_tests.append({"test": "Maturity Check Endpoint", "category": "Soft Delete & Maturity", "critical": True})
+            
+        if not self.test_pending_maturity_alerts():
+            failed_tests.append({"test": "Pending Maturity Alerts", "category": "Soft Delete & Maturity", "critical": True})
+            
+        if not self.test_expired_securities_endpoint():
+            failed_tests.append({"test": "Expired Securities Endpoint", "category": "Soft Delete & Maturity", "critical": True})
+            
+        if not self.test_deleted_holdings_audit():
+            failed_tests.append({"test": "Deleted Holdings Audit", "category": "Soft Delete & Maturity", "critical": True})
+            
+        if not self.test_email_logs_endpoint():
+            failed_tests.append({"test": "Email Logs Endpoint", "category": "Soft Delete & Maturity", "critical": True})
+            
+        if not self.test_holdings_filtering_admin():
+            failed_tests.append({"test": "Holdings Filtering Admin", "category": "Soft Delete & Maturity", "critical": True})
+            
+        if not self.test_approve_maturity_alert():
+            failed_tests.append({"test": "Approve Maturity Alert", "category": "Soft Delete & Maturity", "critical": True})
+            
+        if not self.test_cross_user_protection():
+            failed_tests.append({"test": "Cross User Protection", "category": "Soft Delete & Maturity", "critical": False})
+            
+        if not self.test_maturity_permissions():
+            failed_tests.append({"test": "Maturity Permissions", "category": "Soft Delete & Maturity", "critical": False})
+            
+        return self.print_final_summary(failed_tests)
+
+    def print_final_summary(self, failed_tests):
+        """Print comprehensive test summary with detailed failure analysis"""
+        print("\n" + "=" * 80)
+        print("📊 COMPREHENSIVE TEST RESULTS SUMMARY")
+        print("=" * 80)
+        
+        total_tests = self.tests_run
+        passed_tests = self.tests_passed
+        failed_count = len(failed_tests)
+        success_rate = (passed_tests / total_tests) * 100 if total_tests > 0 else 0
+        
+        print(f"📈 OVERALL STATISTICS:")
+        print(f"   Total Tests Run: {total_tests}")
+        print(f"   Tests Passed: {passed_tests}")
+        print(f"   Tests Failed: {failed_count}")
+        print(f"   Success Rate: {success_rate:.1f}%")
+        
+        if failed_count == 0:
+            print("\n🎉 ALL TESTS PASSED! The Panama Government Bonds Registration System is working perfectly!")
+            return 0
+        
+        # Group failed tests by category
+        failed_by_category = {}
+        critical_failures = []
+        
+        for failure in failed_tests:
+            category = failure["category"]
+            if category not in failed_by_category:
+                failed_by_category[category] = []
+            failed_by_category[category].append(failure)
+            
+            if failure["critical"]:
+                critical_failures.append(failure)
+        
+        print(f"\n❌ FAILED TESTS BREAKDOWN:")
+        print("-" * 50)
+        
+        for category, failures in failed_by_category.items():
+            print(f"\n📂 {category} ({len(failures)} failures):")
+            for failure in failures:
+                status = "🔴 CRITICAL" if failure["critical"] else "🟡 MINOR"
+                print(f"   {status} - {failure['test']}")
+        
+        if critical_failures:
+            print(f"\n🚨 CRITICAL FAILURES ({len(critical_failures)} tests):")
+            print("   These failures indicate core functionality issues that need immediate attention:")
+            for failure in critical_failures:
+                print(f"   🔴 {failure['test']} ({failure['category']})")
+        
+        print(f"\n📋 DETAILED ANALYSIS:")
+        print(f"   • Authentication: {'✅ Working' if not any(f['category'] == 'Authentication' for f in failed_tests) else '❌ Issues Found'}")
+        print(f"   • User Management: {'✅ Working' if not any(f['category'] == 'User Management' for f in failed_tests) else '❌ Issues Found'}")
+        print(f"   • Admin Management: {'✅ Working' if not any(f['category'] == 'Admin Management' for f in failed_tests) else '❌ Issues Found'}")
+        print(f"   • Securities Management: {'✅ Working' if not any(f['category'] == 'Securities Management' for f in failed_tests) else '❌ Issues Found'}")
+        print(f"   • Holdings Management: {'✅ Working' if not any(f['category'] == 'Holdings Management' for f in failed_tests) else '❌ Issues Found'}")
+        print(f"   • Soft Delete & Maturity: {'✅ Working' if not any(f['category'] == 'Soft Delete & Maturity' for f in failed_tests) else '❌ Issues Found'}")
+        
+        print(f"\n🔍 ROOT CAUSE ANALYSIS NEEDED FOR:")
+        for failure in failed_tests:
+            if failure["critical"]:
+                print(f"   • {failure['test']}: Check backend logs, API responses, and database state")
+        
+        return 1 if critical_failures else 0
+
 def main():
+    """Run comprehensive testing"""
+    tester = BondsAPITester()
+    return tester.run_comprehensive_tests()
+
+def main_original():
     print("🚀 Starting Panamanian Bonds API Testing...")
     print("=" * 60)
     
