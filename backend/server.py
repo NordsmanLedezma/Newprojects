@@ -722,7 +722,11 @@ async def get_user_holdings(token_payload: dict = Depends(verify_token)):
     if token_payload.get("user_type") != "user":
         raise HTTPException(status_code=403, detail="Acceso denegado")
     
-    holdings = await db.holdings.find({"user_id": token_payload["user_id"]}).to_list(1000)
+    # Filter out deleted holdings
+    holdings = await db.holdings.find({
+        "user_id": token_payload["user_id"],
+        "is_deleted": {"$ne": True}
+    }).to_list(1000)
     return [Holding(**holding) for holding in holdings]
 
 @api_router.get("/admin/holdings", response_model=List[Holding])
@@ -730,7 +734,8 @@ async def get_all_holdings(token_payload: dict = Depends(verify_token)):
     if token_payload.get("user_type") != "admin":
         raise HTTPException(status_code=403, detail="Acceso denegado")
     
-    holdings = await db.holdings.find().to_list(1000)
+    # Filter out deleted holdings
+    holdings = await db.holdings.find({"is_deleted": {"$ne": True}}).to_list(1000)
     return [Holding(**holding) for holding in holdings]
 
 @api_router.get("/admin/users/{user_id}/holdings", response_model=List[Holding])
@@ -743,7 +748,11 @@ async def get_user_holdings_by_admin(user_id: str, token_payload: dict = Depends
     if not user:
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
     
-    holdings = await db.holdings.find({"user_id": user_id}).to_list(1000)
+    # Filter out deleted holdings
+    holdings = await db.holdings.find({
+        "user_id": user_id,
+        "is_deleted": {"$ne": True}
+    }).to_list(1000)
     return [Holding(**holding) for holding in holdings]
 
 @api_router.post("/admin/users/{user_id}/holdings", response_model=Holding)
