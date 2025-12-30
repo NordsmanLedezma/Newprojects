@@ -225,6 +225,42 @@ backend:
         agent: "testing"
         comment: "✅ TESTED - Email logs endpoint working correctly. Returns array of email logs. Email service confirmed MOCKED - logs to database instead of sending real emails."
 
+  - task: "Clear All Securities endpoint"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "testing"
+        comment: "❌ CRITICAL FAILURE - Clear All Securities endpoint returning 404 error instead of 200. Route ordering issue suspected."
+      - working: true
+        agent: "main"
+        comment: "Fixed route ordering - moved clear-all route before {security_id} route to prevent 'clear-all' being interpreted as an ID"
+      - working: true
+        agent: "testing"
+        comment: "✅ FIXED - Clear All Securities working correctly. Returns 200 with proper response: {'message': 'Eliminados 3 valores registrados', 'deleted_count': 3, 'total_before': 3}. Route ordering fix successful."
+
+  - task: "Export Excel endpoint"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "testing"
+        comment: "❌ CRITICAL FAILURE - Export Excel endpoint returning 520 Internal Server Error. Empty list handling issue suspected."
+      - working: true
+        agent: "main"
+        comment: "Fixed empty list handling in Excel export - added safe access to user_info and source_holdings arrays to prevent index errors"
+      - working: true
+        agent: "testing"
+        comment: "✅ FIXED - Export Excel working correctly. Returns 200 with Excel file. Empty list handling fix successful."
+
   - task: "Mocked email service"
     implemented: true
     working: true
