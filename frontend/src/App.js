@@ -2174,7 +2174,19 @@ function UserDashboard() {
                         <p className="font-semibold">{holding.holder_name}</p>
                         <p className="text-sm text-gray-600">{holding.holder_id}</p>
                       </div>
-                      <Badge variant="outline">{holding.filing_date}</Badge>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline">{holding.filing_date}</Badge>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => deleteHolding(holding.id, holding.holder_name)}
+                          disabled={loading}
+                          data-testid={`delete-holding-${holding.id}`}
+                          title="Eliminar tenencia"
+                        >
+                          🗑️
+                        </Button>
+                      </div>
                     </div>
                     <div className="grid grid-cols-2 gap-2 text-sm">
                       <div>
