@@ -11,6 +11,7 @@ class BondsAPITester:
         self.api_url = f"{base_url}/api"
         self.admin_token = None
         self.user_token = None
+        self.test_user_token = None  # For test_user credentials
         self.tests_run = 0
         self.tests_passed = 0
         self.created_user_id = None
