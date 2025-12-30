@@ -1010,8 +1010,16 @@ async def update_master_holdings():
     # Clear existing master holdings
     await db.master_holdings.delete_many({})
     
-    # Aggregate holdings by filing_date, security, and holder
+    # Aggregate holdings by filing_date, security, and holder (excluding deleted)
     pipeline = [
+        {
+            "$match": {
+                "$or": [
+                    {"is_deleted": {"$exists": False}},
+                    {"is_deleted": False}
+                ]
+            }
+        },
         {
             "$group": {
                 "_id": {
