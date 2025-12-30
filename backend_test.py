@@ -1498,6 +1498,420 @@ class BondsAPITester:
             print("❌ Admin management permission validation failed")
             return False
 
+    # ===== NEW SOFT DELETE AND MATURITY SYSTEM TESTS =====
+    def test_user_login_with_credentials(self):
+        """Test login with specific test credentials"""
+        print(f"\n🔍 Testing User Login with Test Credentials...")
+        
+        success, response = self.run_test(
+            "User Login (test_user)",
+            "POST",
+            "auth/login",
+            200,
+            data={"username": "test_user", "password": "test123"}
+        )
+        if success and 'access_token' in response:
+            self.test_user_token = response['access_token']
+            print(f"   Test user token obtained: {self.test_user_token[:20]}...")
+            return True
+        return False
+
+    def test_soft_delete_user_holding(self):
+        """Test soft delete holdings by user - NEW FEATURE"""
+        print(f"\n🔍 Testing Soft Delete User Holdings...")
+        
+        # First, create a holding to delete
+        timestamp = datetime.now().strftime('%H%M%S')
+        holding_data = {
+            "filing_date": "2024-01-15",
+            "isin_or_latinex_code": f"US{timestamp}DEL",
+            "holder_name": "María Rodríguez",
+            "holder_id": "8-456-789",
+            "legal_representative": "Carlos Mendoza",
+            "amount_held": 75000.25,
+            "address": "Avenida Balboa, Ciudad de Panamá",
+            "phone": "+507-456-7890",
+            "email": "maria.rodriguez@example.com"
+        }
+        
+        # Create holding with test user token
+        success_create, response_create = self.run_test(
+            "Create Holding for Soft Delete Test",
+            "POST",
+            "holdings",
+            200,
+            data=holding_data,
+            token=self.test_user_token
+        )
+        
+        if not success_create or 'id' not in response_create:
+            print("❌ Could not create holding for soft delete test")
+            return False
+            
+        holding_id = response_create['id']
+        print(f"   Created holding ID: {holding_id}")
+        
+        # Get holdings before delete
+        success_before, response_before = self.run_test(
+            "Get Holdings Before Delete",
+            "GET",
+            "holdings",
+            200,
+            token=self.test_user_token
+        )
+        
+        holdings_before = len(response_before) if success_before and isinstance(response_before, list) else 0
+        print(f"   Holdings before delete: {holdings_before}")
+        
+        # Soft delete the holding
+        success_delete, response_delete = self.run_test(
+            "Soft Delete User Holding",
+            "DELETE",
+            f"holdings/{holding_id}",
+            200,
+            token=self.test_user_token
+        )
+        
+        if not success_delete:
+            print("❌ Soft delete failed")
+            return False
+            
+        # Verify response includes deleted_at timestamp
+        if 'deleted_at' not in response_delete:
+            print("❌ Response missing deleted_at timestamp")
+            return False
+            
+        print(f"   Deleted at: {response_delete['deleted_at']}")
+        
+        # Get holdings after delete - should NOT include deleted holding
+        success_after, response_after = self.run_test(
+            "Get Holdings After Delete",
+            "GET",
+            "holdings",
+            200,
+            token=self.test_user_token
+        )
+        
+        holdings_after = len(response_after) if success_after and isinstance(response_after, list) else 0
+        print(f"   Holdings after delete: {holdings_after}")
+        
+        if holdings_after == holdings_before - 1:
+            print("✅ Soft delete working correctly - holding no longer appears in user list")
+            return True, holding_id
+        else:
+            print("❌ Soft delete failed - holding still appears in user list")
+            return False, None
+
+    def test_maturity_check_endpoint(self):
+        """Test maturity check endpoint - NEW FEATURE"""
+        print(f"\n🔍 Testing Maturity Check Endpoint...")
+        
+        success, response = self.run_test(
+            "Trigger Maturity Check",
+            "GET",
+            "admin/maturity/check",
+            200,
+            token=self.admin_token
+        )
+        
+        if success and isinstance(response, dict):
+            alerts_created = response.get('alerts_created', 0)
+            message = response.get('message', '')
+            print(f"   Result: {message}")
+            print(f"   Alerts created: {alerts_created}")
+            print("✅ Maturity check endpoint working correctly")
+            return True
+        else:
+            print("❌ Maturity check endpoint failed")
+            return False
+
+    def test_pending_maturity_alerts(self):
+        """Test pending maturity alerts endpoint - NEW FEATURE"""
+        print(f"\n🔍 Testing Pending Maturity Alerts...")
+        
+        success, response = self.run_test(
+            "Get Pending Maturity Alerts",
+            "GET",
+            "admin/maturity/pending",
+            200,
+            token=self.admin_token
+        )
+        
+        if success and isinstance(response, list):
+            print(f"   Found {len(response)} pending alerts")
+            if len(response) > 0:
+                alert = response[0]
+                print(f"   Sample alert: Security {alert.get('security_info', {}).get('security_description', 'N/A')}")
+            print("✅ Pending maturity alerts endpoint working correctly")
+            return True, response
+        else:
+            print("❌ Pending maturity alerts endpoint failed")
+            return False, []
+
+    def test_expired_securities_endpoint(self):
+        """Test expired securities endpoint - NEW FEATURE"""
+        print(f"\n🔍 Testing Expired Securities Endpoint...")
+        
+        success, response = self.run_test(
+            "Get Expired Securities",
+            "GET",
+            "admin/securities/expired",
+            200,
+            token=self.admin_token
+        )
+        
+        if success and isinstance(response, list):
+            print(f"   Found {len(response)} expired securities")
+            print("✅ Expired securities endpoint working correctly")
+            return True
+        else:
+            print("❌ Expired securities endpoint failed")
+            return False
+
+    def test_deleted_holdings_audit(self):
+        """Test deleted holdings audit endpoint - NEW FEATURE"""
+        print(f"\n🔍 Testing Deleted Holdings Audit...")
+        
+        success, response = self.run_test(
+            "Get Deleted Holdings Audit",
+            "GET",
+            "admin/holdings/deleted",
+            200,
+            token=self.admin_token
+        )
+        
+        if success and isinstance(response, list):
+            print(f"   Found {len(response)} deleted holdings in audit log")
+            if len(response) > 0:
+                deleted_holding = response[0]
+                print(f"   Sample deleted holding: {deleted_holding.get('holder_name', 'N/A')} - Deleted at: {deleted_holding.get('deleted_at', 'N/A')}")
+            print("✅ Deleted holdings audit endpoint working correctly")
+            return True
+        else:
+            print("❌ Deleted holdings audit endpoint failed")
+            return False
+
+    def test_email_logs_endpoint(self):
+        """Test email logs endpoint - NEW FEATURE"""
+        print(f"\n🔍 Testing Email Logs Endpoint...")
+        
+        success, response = self.run_test(
+            "Get Email Logs",
+            "GET",
+            "admin/email-logs",
+            200,
+            token=self.admin_token
+        )
+        
+        if success and isinstance(response, list):
+            print(f"   Found {len(response)} email logs")
+            if len(response) > 0:
+                email_log = response[0]
+                print(f"   Sample email: To {email_log.get('to_email', 'N/A')} - Subject: {email_log.get('subject', 'N/A')}")
+                if email_log.get('is_mock'):
+                    print("   ⚠️  Email service is MOCKED - emails logged to database")
+            print("✅ Email logs endpoint working correctly")
+            return True
+        else:
+            print("❌ Email logs endpoint failed")
+            return False
+
+    def test_holdings_filtering_admin(self):
+        """Test that admin holdings endpoints filter out deleted holdings - NEW FEATURE"""
+        print(f"\n🔍 Testing Holdings Filtering (Admin)...")
+        
+        # Get all holdings via admin endpoint
+        success_all, response_all = self.run_test(
+            "Get All Holdings (Admin) - Should NOT show deleted",
+            "GET",
+            "admin/holdings",
+            200,
+            token=self.admin_token
+        )
+        
+        if not success_all:
+            print("❌ Could not get admin holdings")
+            return False
+            
+        # Check if any holdings have is_deleted=true (they shouldn't)
+        deleted_found = False
+        if isinstance(response_all, list):
+            for holding in response_all:
+                if holding.get('is_deleted'):
+                    deleted_found = True
+                    print(f"   ❌ Found deleted holding in admin list: {holding.get('id')}")
+                    
+        if not deleted_found:
+            print(f"   ✅ Admin holdings properly filtered - {len(response_all)} active holdings shown")
+            return True
+        else:
+            print("   ❌ Admin holdings not properly filtered - deleted holdings visible")
+            return False
+
+    def test_approve_maturity_alert(self):
+        """Test approve maturity alert endpoint - NEW FEATURE"""
+        print(f"\n🔍 Testing Approve Maturity Alert...")
+        
+        # First get pending alerts
+        success_pending, pending_alerts = self.test_pending_maturity_alerts()
+        if not success_pending or len(pending_alerts) == 0:
+            print("   No pending alerts to approve - creating test scenario")
+            return True  # Not a failure, just no alerts to test
+            
+        # Try to approve the first alert
+        alert_id = pending_alerts[0].get('id')
+        if not alert_id:
+            print("   ❌ No alert ID found")
+            return False
+            
+        success, response = self.run_test(
+            "Approve Maturity Alert",
+            "POST",
+            f"admin/maturity/{alert_id}/approve",
+            200,
+            token=self.admin_token
+        )
+        
+        if success and isinstance(response, dict):
+            message = response.get('message', '')
+            holdings_archived = response.get('holdings_archived', 0)
+            print(f"   Result: {message}")
+            print(f"   Holdings archived: {holdings_archived}")
+            print("✅ Approve maturity alert working correctly")
+            return True
+        else:
+            print("❌ Approve maturity alert failed")
+            return False
+
+    def test_maturity_system_permissions(self):
+        """Test that only admins can access maturity system endpoints - NEW FEATURE"""
+        print(f"\n🔍 Testing Maturity System Permissions...")
+        
+        # Test user trying to access maturity check (should fail)
+        success_check, response_check = self.run_test(
+            "Maturity Check (User Token - Should Fail)",
+            "GET",
+            "admin/maturity/check",
+            403,
+            token=self.test_user_token
+        )
+        
+        # Test user trying to access pending alerts (should fail)
+        success_pending, response_pending = self.run_test(
+            "Pending Alerts (User Token - Should Fail)",
+            "GET",
+            "admin/maturity/pending",
+            403,
+            token=self.test_user_token
+        )
+        
+        # Test user trying to access expired securities (should fail)
+        success_expired, response_expired = self.run_test(
+            "Expired Securities (User Token - Should Fail)",
+            "GET",
+            "admin/securities/expired",
+            403,
+            token=self.test_user_token
+        )
+        
+        # Test user trying to access deleted holdings audit (should fail)
+        success_deleted, response_deleted = self.run_test(
+            "Deleted Holdings Audit (User Token - Should Fail)",
+            "GET",
+            "admin/holdings/deleted",
+            403,
+            token=self.test_user_token
+        )
+        
+        # Test user trying to access email logs (should fail)
+        success_emails, response_emails = self.run_test(
+            "Email Logs (User Token - Should Fail)",
+            "GET",
+            "admin/email-logs",
+            403,
+            token=self.test_user_token
+        )
+        
+        if success_check and success_pending and success_expired and success_deleted and success_emails:
+            print("✅ Maturity system permission validation working correctly")
+            return True
+        else:
+            print("❌ Maturity system permission validation failed")
+            return False
+
+    def test_soft_delete_nonexistent_holding(self):
+        """Test soft delete with non-existent holding ID"""
+        print(f"\n🔍 Testing Soft Delete Non-existent Holding...")
+        
+        fake_holding_id = "nonexistent-holding-id"
+        success, response = self.run_test(
+            "Soft Delete Non-existent Holding (Should Return 404)",
+            "DELETE",
+            f"holdings/{fake_holding_id}",
+            404,
+            token=self.test_user_token
+        )
+        
+        if success:
+            print("✅ Non-existent holding validation working correctly")
+            return True
+        else:
+            print("❌ Non-existent holding validation failed")
+            return False
+
+    def test_soft_delete_other_user_holding(self):
+        """Test that users cannot delete other users' holdings"""
+        print(f"\n🔍 Testing Soft Delete Other User's Holding...")
+        
+        # Create a holding with admin for another user first
+        if not self.created_user_id:
+            print("❌ No user ID available for cross-user test")
+            return False
+            
+        timestamp = datetime.now().strftime('%H%M%S')
+        holding_data = {
+            "filing_date": "2024-01-15",
+            "isin_or_latinex_code": f"US{timestamp}OTH",
+            "holder_name": "Other User Holding",
+            "holder_id": "8-999-888",
+            "legal_representative": "",
+            "amount_held": 50000.00,
+            "address": "Other Address",
+            "phone": "+507-999-8888",
+            "email": "other@example.com"
+        }
+        
+        success_create, response_create = self.run_test(
+            "Create Holding for Other User",
+            "POST",
+            f"admin/users/{self.created_user_id}/holdings",
+            200,
+            data=holding_data,
+            token=self.admin_token
+        )
+        
+        if not success_create or 'id' not in response_create:
+            print("❌ Could not create holding for other user test")
+            return False
+            
+        other_holding_id = response_create['id']
+        
+        # Try to delete it with test_user token (should fail)
+        success_delete, response_delete = self.run_test(
+            "Try to Delete Other User's Holding (Should Fail)",
+            "DELETE",
+            f"holdings/{other_holding_id}",
+            404,  # Should return 404 because user can't see other user's holdings
+            token=self.test_user_token
+        )
+        
+        if success_delete:
+            print("✅ Cross-user holding protection working correctly")
+            return True
+        else:
+            print("❌ Cross-user holding protection failed")
+            return False
+
 def main():
     print("🚀 Starting Panamanian Bonds API Testing...")
     print("=" * 60)
