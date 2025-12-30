@@ -605,6 +605,24 @@ async def get_securities(token_payload: dict = Depends(verify_token)):
     securities = await db.securities.find().to_list(1000)
     return [Security(**security) for security in securities]
 
+# IMPORTANT: This route MUST be before /{security_id} to avoid "clear-all" being interpreted as an ID
+@api_router.delete("/admin/securities/clear-all")
+async def clear_all_securities(token_payload: dict = Depends(verify_token)):
+    if token_payload.get("user_type") != "admin":
+        raise HTTPException(status_code=403, detail="Acceso denegado")
+    
+    # Get count before deletion
+    count_before = await db.securities.count_documents({})
+    
+    # Delete all securities
+    result = await db.securities.delete_many({})
+    
+    return {
+        "message": f"Eliminados {result.deleted_count} valores registrados",
+        "deleted_count": result.deleted_count,
+        "total_before": count_before
+    }
+
 @api_router.put("/admin/securities/{security_id}", response_model=Security)
 async def update_security(security_id: str, security_data: SecurityCreate, token_payload: dict = Depends(verify_token)):
     if token_payload.get("user_type") != "admin":
@@ -657,23 +675,6 @@ async def delete_security(security_id: str, token_payload: dict = Depends(verify
     await db.securities.delete_one({"id": security_id})
     
     return {"message": "Valor eliminado exitosamente"}
-
-@api_router.delete("/admin/securities/clear-all")
-async def clear_all_securities(token_payload: dict = Depends(verify_token)):
-    if token_payload.get("user_type") != "admin":
-        raise HTTPException(status_code=403, detail="Acceso denegado")
-    
-    # Get count before deletion
-    count_before = await db.securities.count_documents({})
-    
-    # Delete all securities
-    result = await db.securities.delete_many({})
-    
-    return {
-        "message": f"Eliminados {result.deleted_count} valores registrados",
-        "deleted_count": result.deleted_count,
-        "total_before": count_before
-    }
 
 @api_router.get("/securities/search/{code}")
 async def search_security(code: str, token_payload: dict = Depends(verify_token)):
