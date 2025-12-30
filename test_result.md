@@ -101,3 +101,183 @@
 #====================================================================================================
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
+
+user_problem_statement: Sistema de registro de bonos gubernamentales de Panamá para casas de corretaje. Nuevas funcionalidades: eliminación suave de tenencias y sistema de alertas de vencimiento.
+
+backend:
+  - task: "Soft delete holdings - user endpoint"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "DELETE /api/holdings/{id} endpoint implemented with is_deleted and deleted_at fields"
+
+  - task: "Soft delete holdings - admin endpoint"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "DELETE /api/admin/holdings/{id} now does soft delete instead of hard delete"
+
+  - task: "Maturity check endpoint"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "GET /api/admin/maturity/check triggers maturity check for securities within 5 days"
+
+  - task: "Pending maturity alerts endpoint"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "GET /api/admin/maturity/pending returns alerts needing admin approval"
+
+  - task: "Approve maturity alert endpoint"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "POST /api/admin/maturity/{id}/approve archives security and holdings"
+
+  - task: "Expired securities endpoint"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "GET /api/admin/securities/expired returns securities with status Vencido"
+
+  - task: "Deleted holdings audit endpoint"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "GET /api/admin/holdings/deleted returns soft-deleted holdings for audit"
+
+  - task: "Email logs endpoint"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "low"
+    needs_retesting: true
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "GET /api/admin/email-logs returns mocked email history"
+
+  - task: "Mocked email service"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "send_mock_email function logs emails to database instead of sending. Ready for real email server later."
+
+frontend:
+  - task: "Delete button on user holdings"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Delete button added to each holding in UserDashboard with confirmation dialog"
+
+  - task: "Vencimientos tab in admin panel"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "New tab showing maturity alerts, expired securities, deleted holdings audit, and email logs"
+
+  - task: "Check maturity button"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Button triggers GET /api/admin/maturity/check"
+
+  - task: "Approve maturity alerts UI"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Cards showing pending alerts with approve button"
+
+metadata:
+  created_by: "main_agent"
+  version: "1.0"
+  test_sequence: 1
+  run_ui: true
+
+test_plan:
+  current_focus:
+    - "Soft delete holdings - user endpoint"
+    - "Delete button on user holdings"
+    - "Vencimientos tab in admin panel"
+    - "Maturity check endpoint"
+  stuck_tasks: []
+  test_all: false
+  test_priority: "high_first"
+
+agent_communication:
+  - agent: "main"
+    message: "Implemented soft delete for holdings (both user and admin) with deleted_at timestamp. Added maturity system with check, alerts, and approval workflow. Frontend updated with delete buttons and Vencimientos tab. Email service is MOCKED - logs to database. Please test: 1) User can delete their holdings 2) Admin can view/approve maturity alerts 3) Deleted holdings appear in audit log. Test credentials: admin/admin123 for admin, test_user/test123 for regular user."
